@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中元節</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-wrap: wrap;
+            padding: 2rem;
+        }
+        .container {
+            position: relative;
+            max-width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+        #learningImage {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .hotspot {
+            position: absolute;
+            background-color: rgba(255, 255, 0, 0.3);
+            border: 2px solid #ffcc00;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .hotspot:hover {
+            background-color: rgba(255, 255, 0, 0.5);
+        }
+        .hotspot.active .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            z-index: 99;
+        }
+        .hotspot:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        #coordinates-info {
+            margin-top: 1rem;
+            background-color: #f0f4f8;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: left;
+            width: 100%;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .editor-panel {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e2e8f0;
+            border-radius: 8px;
+            width: 100%;
+        }
+        .editor-panel input, .editor-panel textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #cbd5e0;
+        }
+        .tooltip-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .voice-alert {
+            display: none;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center mb-6">中元節學習互動網站</h1>
+        <div class="image-container">
+            <img id="learningImage" src="https://d3dyak49qszsk5.cloudfront.net/large_3_c59adad0f7.jpg" alt="泰國中華祭品圖片">
+        </div>
+
+        <div id="coordinates-info">
+            點擊圖片以取得座標...
+        </div>
+
+        <div class="editor-panel">
+            <h2 class="text-xl font-bold mb-2">編輯工具</h2>
+            <div id="voice-alert" class="voice-alert">
+                <p>⚠️ 找不到泰文語音。請檢查您的瀏覽器或作業系統設定，並安裝泰文語音包。</p>
+            </div>
+            <p class="mb-2">請在圖片上點擊你想要新增熱點的左上角和右下角。</p>
+            <p class="mt-2 text-sm text-gray-600">
+                點擊圖片左上角以開始新增熱點，接著點擊右下角來完成。
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">泰文</label>
+                    <input type="text" id="thai-input" placeholder="ไก่" class="mt-1">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">中文翻譯</label>
+                    <input type="text" id="translation-input" placeholder="雞" class="mt-1">
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700">hotspots 程式碼</label>
+                <textarea id="hotspot_list" rows="10" readonly class="mt-1"></textarea>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700">vocabularies 程式碼</label>
+                <textarea id="vocab_list" rows="10" readonly class="mt-1"></textarea>
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const image = document.getElementById('learningImage');
+        const imageContainer = document.querySelector('.image-container');
+        const coordinatesInfo = document.getElementById('coordinates-info');
+        const thaiInput = document.getElementById('thai-input');
+        const translationInput = document.getElementById('translation-input');
+        const hotspotListTextarea = document.getElementById('hotspot_list');
+        const vocabListTextarea = document.getElementById('vocab_list');
+        const voiceAlert = document.getElementById('voice-alert');
+
+        // 定義泰文詞彙及其資訊
+        const vocabularies = {
+            'hotspot5': { thai: 'พิธี', translation: '儀式; 典禮' },
+            'hotspot6': { thai: 'ไหว้', translation: '拜' },
+            'hotspot7': { thai: 'วันสารทจีน', translation: '中元節（[วัน-สาด-จีน]）' },
+            'hotspot8': { thai: 'ตอนเช้า', translation: '早上' },
+            'hotspot9': { thai: 'เจ้าที่', translation: '地基主 (เจ้า: 主; ที่: 地)' },
+            'hotspot10': { thai: 'ชุด', translation: '套; 組' },
+            'hotspot11': { thai: 'ซาแซ', translation: '三牲（潮州話）' },
+            'hotspot12': { thai: 'เนื้อสัตว์', translation: '動物肉' },
+            'hotspot13': { thai: 'โหงวแซ', translation: '五牲（潮州話）' },
+            'hotspot14': { thai: 'นิยม', translation: '流行' },
+            'hotspot15': { thai: 'ขนมเข่ง', translation: '年糕' },
+            'hotspot16': { thai: 'เพราะ', translation: '因為' },
+            'hotspot17': { thai: 'คนจีน', translation: '華人' },
+            'hotspot18': { thai: 'ออกเสียง', translation: '發音' },
+            'hotspot19': { thai: 'ไต้กิก', translation: '大桔（潮州話）' },
+            'hotspot20': { thai: 'มหา', translation: '巨大' },
+            'hotspot21': { thai: 'มงคล', translation: '吉利' },
+            'hotspot22': { thai: 'บรรพบุรุษ', translation: '祖先' },
+            'hotspot23': { thai: 'คล้าย', translation: '類似' },
+            'hotspot24': { thai: 'เพิ่ม', translation: '增加' },
+            'hotspot25': { thai: 'กับข้าว', translation: '配菜; 菜餚' },
+            'hotspot26': { thai: 'เช่นกัน', translation: '同樣' },
+            'hotspot27': { thai: 'ถ้วยน้ำชา', translation: '茶杯' },
+            'hotspot28': { thai: 'ตรงตาม...', translation: '與...一致' },
+            'hotspot29': { thai: 'จำนวน', translation: '數量' },
+            'hotspot30': { thai: 'ตอนสาย', translation: '（接近中午的）早上' },
+            'hotspot31': { thai: 'จัด', translation: '安排; 處理' },
+            'hotspot32': { thai: 'มัก', translation: '常常' },
+            'hotspot33': { thai: 'เสร็จ', translation: '完成' },
+            'hotspot34': { thai: 'ก่อนเที่ยง', translation: '中午前' },
+            'hotspot35': { thai: 'ตอนบ่าย', translation: '下午' },
+            'hotspot36': { thai: 'วิญญาณ', translation: '靈魂' },
+            'hotspot37': { thai: 'เร่ร่อน', translation: '遊蕩' },
+            'hotspot38': { thai: 'ฮอเฮียตี๋', translation: '好兄弟（潮州話）' },
+            'hotspot39': { thai: 'ตรงหน้า', translation: '前方' },
+            'hotspot40': { thai: 'ประตู', translation: '門' },
+            'hotspot41': { thai: 'ปริมาณ', translation: '量' },
+            'hotspot42': { thai: 'ของไหว้', translation: '祭品' },
+            'hotspot43': { thai: 'ทั้งหม้อ', translation: '整鍋' },
+            'hotspot44': { thai: 'ปัก', translation: '插' },
+            'hotspot45': { thai: 'ธูป', translation: '香' },
+            'hotspot46': { thai: 'ดอก', translation: '炷（香的量詞）' },
+            'hotspot47': { thai: 'ข้าวสาร', translation: '米' },
+            'hotspot48': { thai: 'เกลือ', translation: '鹽' },
+            'hotspot49': { thai: 'ซัด', translation: '撒' },
+            'hotspot50': { thai: 'ชายคา', translation: '屋簷' },
+            'hotspot51': { thai: 'ไล่', translation: '趕' },
+            'hotspot52': { thai: 'กลับ', translation: '回去' },
+            'hotspot53': { thai: 'ภัย', translation: '禍害; 災難; 危險' },
+            'hotspot54': { thai: 'ขนมเทียน', translation: '一種粽子狀甜點' },
+            'hotspot55': { thai: 'เช่น', translation: '例如' },
+            'hotspot56': { thai: 'หมึก', translation: '墨魚類' },
+            'hotspot57': { thai: 'แปลว่า', translation: '翻譯為' },
+        };
+
+        // 定義熱點區域的座標
+        const hotspots = [
+            { id: 'hotspot5', x: 41.78, y: 2.89, width: 8.55, height: 3.95 },
+            { id: 'hotspot6', x: 50.58, y: 2.7, width: 9.95, height: 5 },
+            { id: 'hotspot7', x: 24.1, y: 7.04, width: 51.64, height: 7.76 },
+            { id: 'hotspot8', x: 37.75, y: 17.3, width: 12.83, height: 2.96 },
+            { id: 'hotspot9', x: 56.66, y: 16.97, width: 8.55, height: 3.1 },
+            { id: 'hotspot10', x: 16.94, y: 21.78, width: 3.95, height: 2.23 },
+            { id: 'hotspot11', x: 20.89, y: 21.84, width: 7.98, height: 2.04 },
+            { id: 'hotspot12', x: 9.21, y: 24.54, width: 8.72, height: 2.3 },
+            { id: 'hotspot13', x: 12.58, y: 27.7, width: 8.64, height: 1.84 },
+            { id: 'hotspot14', x: 38.08, y: 27.43, width: 4.85, height: 2.04 },
+            { id: 'hotspot15', x: 57.32, y: 27.76, width: 8.8, height: 1.71 },
+            { id: 'hotspot16', x: 68.59, y: 24.93, width: 6.41, height: 1.71 },
+            { id: 'hotspot17', x: 75.16, y: 25.07, width: 5.93, height: 1.57 },
+            { id: 'hotspot18', x: 81.25, y: 25.2, width: 9.54, height: 1.31 },
+            { id: 'hotspot19', x: 68.75, y: 27.57, width: 7.4, height: 1.97 },
+            { id: 'hotspot20', x: 85.77, y: 27.83, width: 4.2, height: 1.64 },
+            { id: 'hotspot21', x: 90.13, y: 27.89, width: 6, height: 1.52 },
+            { id: 'hotspot22', x: 31.58, y: 59.74, width: 13.98, height: 2.23 },
+            { id: 'hotspot23', x: 17.68, y: 65.72, width: 6, height: 1.78 },
+            { id: 'hotspot24', x: 8.96, y: 68.49, width: 4.61, height: 1.97 },
+            { id: 'hotspot25', x: 14.8, y: 68.55, width: 7.4, height: 1.84 },
+            { id: 'hotspot26', x: 16.86, y: 78.42, width: 7.32, height: 2.04 },
+            { id: 'hotspot27', x: 5.76, y: 82.3, width: 10.36, height: 2.31 },
+            { id: 'hotspot28', x: 20.72, y: 82.83, width: 9.21, height: 1.78 },
+            { id: 'hotspot29', x: 5.76, y: 85.46, width: 7.56, height: 2.11 },
+            { id: 'hotspot30', x: 14.06, y: 59.8, width: 11.93, height: 2.17 },
+            { id: 'hotspot31', x: 5.51, y: 65.53, width: 3.54, height: 2.1 },
+            { id: 'hotspot32', x: 5.67, y: 89.61, width: 3.46, height: 2.17 },
+            { id: 'hotspot33', x: 15.71, y: 89.61, width: 5.26, height: 2.17 },
+            { id: 'hotspot34', x: 21.13, y: 89.87, width: 10.45, height: 1.71 },
+            { id: 'hotspot35', x: 58.39, y: 59.74, width: 11.51, height: 2.17 },
+            { id: 'hotspot36', x: 75.41, y: 59.47, width: 12.58, height: 2.37 },
+            { id: 'hotspot37', x: 88.16, y: 59.54, width: 8.96, height: 2.1 },
+            { id: 'hotspot38', x: 71.79, y: 63.62, width: 10.69, height: 1.97 },
+            { id: 'hotspot39', x: 75.08, y: 67.11, width: 8.72, height: 1.9 },
+            { id: 'hotspot40', x: 83.96, y: 67.17, width: 5.76, height: 1.65 },
+            { id: 'hotspot41', x: 81.09, y: 71.32, width: 8.3, height: 1.84 },
+            { id: 'hotspot42', x: 9.21, y: 65.59, width: 8.39, height: 1.78 },
+            { id: 'hotspot43', x: 87.17, y: 74.21, width: 7.65, height: 1.78 },
+            { id: 'hotspot44', x: 83.47, y: 78.42, width: 3.29, height: 1.71 },
+            { id: 'hotspot45', x: 87.01, y: 78.49, width: 3.12, height: 1.58 },
+            { id: 'hotspot46', x: 92.43, y: 78.62, width: 4.94, height: 1.58 },
+            { id: 'hotspot47', x: 84.54, y: 82.43, width: 8.72, height: 2.04 },
+            { id: 'hotspot48', x: 69.24, y: 85.46, width: 5.6, height: 1.91 },
+            { id: 'hotspot49', x: 75, y: 85.53, width: 2.96, height: 1.77 },
+            { id: 'hotspot50', x: 78.13, y: 85.59, width: 6.99, height: 1.65 },
+            { id: 'hotspot51', x: 70.23, y: 88.09, width: 2.63, height: 2.04 },
+            { id: 'hotspot52', x: 76.89, y: 88.49, width: 4.69, height: 1.64 },
+            { id: 'hotspot53', x: 93.34, y: 88.16, width: 3.45, height: 2.1 },
+            { id: 'hotspot54', x: 46.79, y: 27.83, width: 9.95, height: 1.71 },
+            { id: 'hotspot55', x: 8.22, y: 30.46, width: 4.2, height: 2.04 },
+            { id: 'hotspot56', x: 24.84, y: 30.66, width: 4.85, height: 1.77 },
+            { id: 'hotspot57', x: 76.81, y: 27.7, width: 7.48, height: 1.64 },
+        ];
+
+        // 編輯模式的變數
+        let clickCount = 0;
+        let startX = 0;
+        let startY = 0;
+        let newHotspots = [];
+        let newVocabularies = {};
+        let hotspotIdCounter = hotspots.length;
+
+        // Web Speech API
+        const speechSynthesizer = window.speechSynthesis;
+        let thaiVoice = null;
+        
+        function loadThaiVoice() {
+            const voices = speechSynthesizer.getVoices();
+            thaiVoice = voices.find(voice => voice.lang.startsWith('th-'));
+            if (!thaiVoice) {
+                voiceAlert.style.display = 'block';
+            } else {
+                voiceAlert.style.display = 'none';
+            }
+        }
+
+        // 當語音載入完成時，找到泰文語音
+        speechSynthesizer.onvoiceschanged = loadThaiVoice;
+        loadThaiVoice(); // 嘗試立即載入
+
+        function speakText(text) {
+            if (!speechSynthesizer || !thaiVoice) {
+                console.error('無法使用語音合成。');
+                return;
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.voice = thaiVoice;
+            utterance.lang = 'th-TH';
+            speechSynthesizer.speak(utterance);
+        }
+        
+        // 創建熱點並將其添加到圖片容器中
+        function createHotspots() {
+            // 清除現有熱點
+            document.querySelectorAll('.hotspot').forEach(el => el.remove());
+
+            // 重新繪製所有熱點
+            const allHotspots = [...hotspots, ...newHotspots];
+            allHotspots.forEach(hotspotData => {
+                const hotspot = document.createElement('div');
+                hotspot.className = 'hotspot';
+                hotspot.id = hotspotData.id;
+                hotspot.style.left = `${hotspotData.x}%`;
+                hotspot.style.top = `${hotspotData.y}%`;
+                hotspot.style.width = `${hotspotData.width}%`;
+                hotspot.style.height = `${hotspotData.height}%`;
+
+                // 創建工具提示元素
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+
+                const wordData = vocabularies[hotspotData.id] || newVocabularies[hotspotData.id];
+                if (wordData) {
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'tooltip-content';
+                    contentDiv.innerHTML = `<strong>${wordData.thai}</strong><br>${wordData.translation}`;
+                    tooltip.appendChild(contentDiv);
+                }
+
+                hotspot.appendChild(tooltip);
+                imageContainer.appendChild(hotspot);
+
+                // 計算工具提示位置
+                const hotspotTop = hotspotData.y;
+                if (hotspotTop < 20) {
+                    tooltip.style.bottom = 'auto';
+                    tooltip.style.top = '120%';
+                } else {
+                    tooltip.style.top = 'auto';
+                    tooltip.style.bottom = '120%';
+                }
+                tooltip.style.left = '50%';
+                tooltip.style.transform = 'translateX(-50%)';
+
+                // 為熱點添加滑鼠進入和觸摸開始事件
+                hotspot.addEventListener('mouseenter', () => {
+                    if (wordData && wordData.thai) {
+                        speakText(wordData.thai);
+                    }
+                });
+
+                hotspot.addEventListener('mouseleave', () => {
+                    speechSynthesizer.cancel();
+                });
+
+                // 新增點擊事件，同時適用於滑鼠和觸摸
+                hotspot.addEventListener('click', (e) => {
+                    // 阻止事件冒泡，防止觸發 document 上的點擊事件
+                    e.stopPropagation();
+
+                    // 先取消所有熱點的 active 狀態
+                    document.querySelectorAll('.hotspot').forEach(el => el.classList.remove('active'));
+                    
+                    // 檢查是否有正在播放的語音並取消
+                    if (speechSynthesizer.speaking) {
+                      speechSynthesizer.cancel();
+                    }
+                    
+                    // 播放聲音並顯示tooltip
+                    if (wordData && wordData.thai) {
+                        speakText(wordData.thai);
+                        hotspot.classList.add('active');
+                    }
+                });
+            });
+
+            // 為整個文檔添加點擊事件，用於點擊任何地方時隱藏所有工具提示
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.hotspot').forEach(el => el.classList.remove('active'));
+                speechSynthesizer.cancel();
+            });
+
+        }
+
+        // 點擊圖片時取得座標
+        image.addEventListener('click', (event) => {
+            const rect = image.getBoundingClientRect();
+            const xInPixels = event.offsetX;
+            const yInPixels = event.offsetY;
+
+            // 將像素座標轉換為百分比，保留兩位小數
+            const xInPercent = ((xInPixels / rect.width) * 100).toFixed(2);
+            const yInPercent = ((yInPixels / rect.height) * 100).toFixed(2);
+            
+            if (clickCount === 0) {
+                // 第一次點擊：記錄左上角座標
+                startX = xInPercent;
+                startY = yInPercent;
+                coordinatesInfo.innerHTML = `已記錄左上角座標: x=${startX}%, y=${startY}%<br>請點擊右下角...`;
+                clickCount = 1;
+            } else {
+                // 第二次點擊：記錄右下角並計算熱點
+                const endX = xInPercent;
+                const endY = yInPercent;
+                const width = (endX - startX).toFixed(2);
+                const height = (endY - startY).toFixed(2);
+
+                if (width < 0 || height < 0) {
+                    coordinatesInfo.innerHTML = '座標無效，請重新點選左上角再點選右下角。';
+                } else {
+                    const thai = thaiInput.value;
+                    const translation = translationInput.value;
+                    
+                    if (!thai || !translation) {
+                        coordinatesInfo.innerHTML = '請先填寫所有詞彙資訊！';
+                        clickCount = 0;
+                        return;
+                    }
+
+                    hotspotIdCounter++;
+                    const newId = `hotspot${hotspotIdCounter}`;
+                    const newHotspot = {
+                        id: newId,
+                        x: parseFloat(startX),
+                        y: parseFloat(startY),
+                        width: parseFloat(width),
+                        height: parseFloat(height)
+                    };
+                    const newVocab = {
+                        thai: thai,
+                        translation: translation
+                    };
+
+                    newHotspots.push(newHotspot);
+                    newVocabularies[newId] = newVocab;
+                    
+                    coordinatesInfo.innerHTML = `
+                        新熱點已建立:
+                        id: '${newId}',
+                        x: ${newHotspot.x}%, y: ${newHotspot.y}%,
+                        width: ${newHotspot.width}%, height: ${newHotspot.height}%
+                        請繼續點擊以新增更多熱點，或複製下方程式碼。
+                    `;
+                    
+                    // 立即在畫面上新增熱點
+                    createHotspots();
+                    updateCodeOutputs();
+                }
+
+                // 重置點擊計數
+                clickCount = 0;
+            }
+        });
+
+        function updateCodeOutputs() {
+            let hotspotCode = 'const hotspots = [\n';
+            hotspots.forEach(h => {
+                hotspotCode += `  { id: '${h.id}', x: ${h.x}, y: ${h.y}, width: ${h.width}, height: ${h.height} },\n`;
+            });
+            newHotspots.forEach(h => {
+                hotspotCode += `  { id: '${h.id}', x: ${h.x}, y: ${h.y}, width: ${h.width}, height: ${h.height} },\n`;
+            });
+            hotspotCode += '];';
+            hotspotListTextarea.value = hotspotCode;
+
+            let vocabCode = 'const vocabularies = {\n';
+            for (const id in vocabularies) {
+                const v = vocabularies[id];
+                vocabCode += `  '${id}': { thai: '${v.thai}', translation: '${v.translation}' },\n`;
+            }
+            for (const id in newVocabularies) {
+                const v = newVocabularies[id];
+                vocabCode += `  '${id}': { thai: '${v.thai}', translation: '${v.translation}' },\n`;
+            }
+            vocabCode += '};';
+            vocabListTextarea.value = vocabCode;
+        }
+
+        createHotspots();
+        updateCodeOutputs();
+    });
+</script>
+
+</body>
+</html>
