@@ -291,32 +291,45 @@
         let hotspotIdCounter = hotspots.length;
 
         // Web Speech API
-        const speechSynthesizer = window.speechSynthesis;
-        let thaiVoice = null;
+        // const speechSynthesizer = window.speechSynthesis;
+        // let thaiVoice = null;
         
-        function loadThaiVoice() {
-            const voices = speechSynthesizer.getVoices();
-            thaiVoice = voices.find(voice => voice.lang.startsWith('th-'));
-            if (!thaiVoice) {
-                voiceAlert.style.display = 'block';
-            } else {
-                voiceAlert.style.display = 'none';
-            }
+        // function loadThaiVoice() {
+        //     const voices = speechSynthesizer.getVoices();
+        //     thaiVoice = voices.find(voice => voice.lang.startsWith('th-'));
+        //     if (!thaiVoice) {
+        //         voiceAlert.style.display = 'block';
+        //     } else {
+        //         voiceAlert.style.display = 'none';
+        //     }
+        // }
+
+        // // 當語音載入完成時，找到泰文語音
+        // speechSynthesizer.onvoiceschanged = loadThaiVoice;
+        // loadThaiVoice(); // 嘗試立即載入
+
+        // function speakText(text) {
+        //     if (!speechSynthesizer || !thaiVoice) {
+        //         console.error('無法使用語音合成。');
+        //         return;
+        //     }
+        //     const utterance = new SpeechSynthesisUtterance(text);
+        //     utterance.voice = thaiVoice;
+        //     utterance.lang = 'th-TH';
+        //     speechSynthesizer.speak(utterance);
+        // }
+
+        // 創建音訊物件，只創建一次
+        const audioPlayer = new Audio();
+
+        function playAudio(audioFile) {
+            audioPlayer.src = audioFile;
+            audioPlayer.play().catch(e => console.error('音訊播放失敗:', e));
         }
 
-        // 當語音載入完成時，找到泰文語音
-        speechSynthesizer.onvoiceschanged = loadThaiVoice;
-        loadThaiVoice(); // 嘗試立即載入
-
-        function speakText(text) {
-            if (!speechSynthesizer || !thaiVoice) {
-                console.error('無法使用語音合成。');
-                return;
-            }
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.voice = thaiVoice;
-            utterance.lang = 'th-TH';
-            speechSynthesizer.speak(utterance);
+        function stopAudio() {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
         }
         
         // 創建熱點並將其添加到圖片容器中
@@ -365,12 +378,16 @@
                 // 為熱點添加滑鼠進入和觸摸開始事件
                 hotspot.addEventListener('mouseenter', () => {
                     if (wordData && wordData.thai) {
-                        speakText(wordData.thai);
+                        // speakText(wordData.thai);
+                        playAudio(`${wordData.thai}.mp3`);
+
                     }
                 });
 
                 hotspot.addEventListener('mouseleave', () => {
-                    speechSynthesizer.cancel();
+                    // speechSynthesizer.cancel();
+                    stopAudio();
+
                 });
 
                 // 新增點擊事件，同時適用於滑鼠和觸摸
@@ -382,13 +399,19 @@
                     document.querySelectorAll('.hotspot').forEach(el => el.classList.remove('active'));
                     
                     // 檢查是否有正在播放的語音並取消
-                    if (speechSynthesizer.speaking) {
-                      speechSynthesizer.cancel();
-                    }
+                    // if (speechSynthesizer.speaking) {
+                    //   speechSynthesizer.cancel();
+                    // }
                     
                     // 播放聲音並顯示tooltip
+                    // if (wordData && wordData.thai) {
+                    //     speakText(wordData.thai);
+                    //     hotspot.classList.add('active');
+                    // }
+                    // 播放聲音並顯示tooltip
                     if (wordData && wordData.thai) {
-                        speakText(wordData.thai);
+                        stopAudio(); // 確保先停止上一個音檔
+                        playAudio(`${wordData.thai}.mp3`);
                         hotspot.classList.add('active');
                     }
                 });
@@ -397,7 +420,9 @@
             // 為整個文檔添加點擊事件，用於點擊任何地方時隱藏所有工具提示
             document.addEventListener('click', () => {
                 document.querySelectorAll('.hotspot').forEach(el => el.classList.remove('active'));
-                speechSynthesizer.cancel();
+                // speechSynthesizer.cancel();
+                stopAudio();
+                
             });
 
         }
