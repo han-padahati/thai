@@ -44,14 +44,14 @@
         }
         .hotspot {
             position: absolute;
-            background-color: rgba(255, 255, 0, 0.3);
-            border: 2px solid #ffcc00;
-            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+/*            border: 2px solid #ffcc00;*/
+/*            border-radius: 6px;*/
             cursor: pointer;
             transition: background-color 0.2s;
         }
         .hotspot:hover {
-            background-color: rgba(255, 255, 0, 0.5);
+            background-color: rgba(255, 255, 255, 0.3);
         }
         .hotspot.active .tooltip {
             opacity: 1;
@@ -63,7 +63,7 @@
             color: white;
             padding: 0.5rem 1rem;
             border-radius: 8px;
-            font-size: 0.875rem;
+            font-size: 1.2rem;
             white-space: nowrap;
             opacity: 0;
             visibility: hidden;
@@ -118,12 +118,12 @@
 <body class="bg-gray-100">
 
     <div class="container">
-        <h1 class="text-3xl font-bold text-center mb-6">中元節學習互動網站</h1>
+        <h3 class="text-3xl font-bold text-center mb-6">中元節海報閱讀</h3>
         <div class="image-container">
             <img id="learningImage" src="https://d3dyak49qszsk5.cloudfront.net/large_3_c59adad0f7.jpg" alt="泰國中華祭品圖片">
         </div>
 
-        <div id="coordinates-info">
+        <!-- <div id="coordinates-info">
             點擊圖片以取得座標...
         </div>
 
@@ -154,7 +154,7 @@
                 <label class="block text-sm font-medium text-gray-700">vocabularies 程式碼</label>
                 <textarea id="vocab_list" rows="10" readonly class="mt-1"></textarea>
             </div>
-        </div>
+        </div> -->
     </div>
 
 <script>
@@ -343,7 +343,7 @@
                 if (wordData) {
                     const contentDiv = document.createElement('div');
                     contentDiv.className = 'tooltip-content';
-                    contentDiv.innerHTML = `<strong>${wordData.thai}</strong><br>${wordData.translation}`;
+                    contentDiv.innerHTML = `<strong>${wordData.thai}</strong>${wordData.translation}`;
                     tooltip.appendChild(contentDiv);
                 }
 
