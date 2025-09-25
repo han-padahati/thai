@@ -402,102 +402,102 @@
 
         }
 
-        // 點擊圖片時取得座標
-        image.addEventListener('click', (event) => {
-            const rect = image.getBoundingClientRect();
-            const xInPixels = event.offsetX;
-            const yInPixels = event.offsetY;
+        // // 點擊圖片時取得座標
+        // image.addEventListener('click', (event) => {
+        //     const rect = image.getBoundingClientRect();
+        //     const xInPixels = event.offsetX;
+        //     const yInPixels = event.offsetY;
 
-            // 將像素座標轉換為百分比，保留兩位小數
-            const xInPercent = ((xInPixels / rect.width) * 100).toFixed(2);
-            const yInPercent = ((yInPixels / rect.height) * 100).toFixed(2);
+        //     // 將像素座標轉換為百分比，保留兩位小數
+        //     const xInPercent = ((xInPixels / rect.width) * 100).toFixed(2);
+        //     const yInPercent = ((yInPixels / rect.height) * 100).toFixed(2);
             
-            if (clickCount === 0) {
-                // 第一次點擊：記錄左上角座標
-                startX = xInPercent;
-                startY = yInPercent;
-                coordinatesInfo.innerHTML = `已記錄左上角座標: x=${startX}%, y=${startY}%<br>請點擊右下角...`;
-                clickCount = 1;
-            } else {
-                // 第二次點擊：記錄右下角並計算熱點
-                const endX = xInPercent;
-                const endY = yInPercent;
-                const width = (endX - startX).toFixed(2);
-                const height = (endY - startY).toFixed(2);
+        //     if (clickCount === 0) {
+        //         // 第一次點擊：記錄左上角座標
+        //         startX = xInPercent;
+        //         startY = yInPercent;
+        //         coordinatesInfo.innerHTML = `已記錄左上角座標: x=${startX}%, y=${startY}%<br>請點擊右下角...`;
+        //         clickCount = 1;
+        //     } else {
+        //         // 第二次點擊：記錄右下角並計算熱點
+        //         const endX = xInPercent;
+        //         const endY = yInPercent;
+        //         const width = (endX - startX).toFixed(2);
+        //         const height = (endY - startY).toFixed(2);
 
-                if (width < 0 || height < 0) {
-                    coordinatesInfo.innerHTML = '座標無效，請重新點選左上角再點選右下角。';
-                } else {
-                    const thai = thaiInput.value;
-                    const translation = translationInput.value;
+        //         if (width < 0 || height < 0) {
+        //             coordinatesInfo.innerHTML = '座標無效，請重新點選左上角再點選右下角。';
+        //         } else {
+        //             const thai = thaiInput.value;
+        //             const translation = translationInput.value;
                     
-                    if (!thai || !translation) {
-                        coordinatesInfo.innerHTML = '請先填寫所有詞彙資訊！';
-                        clickCount = 0;
-                        return;
-                    }
+        //             if (!thai || !translation) {
+        //                 coordinatesInfo.innerHTML = '請先填寫所有詞彙資訊！';
+        //                 clickCount = 0;
+        //                 return;
+        //             }
 
-                    hotspotIdCounter++;
-                    const newId = `hotspot${hotspotIdCounter}`;
-                    const newHotspot = {
-                        id: newId,
-                        x: parseFloat(startX),
-                        y: parseFloat(startY),
-                        width: parseFloat(width),
-                        height: parseFloat(height)
-                    };
-                    const newVocab = {
-                        thai: thai,
-                        translation: translation
-                    };
+        //             hotspotIdCounter++;
+        //             const newId = `hotspot${hotspotIdCounter}`;
+        //             const newHotspot = {
+        //                 id: newId,
+        //                 x: parseFloat(startX),
+        //                 y: parseFloat(startY),
+        //                 width: parseFloat(width),
+        //                 height: parseFloat(height)
+        //             };
+        //             const newVocab = {
+        //                 thai: thai,
+        //                 translation: translation
+        //             };
 
-                    newHotspots.push(newHotspot);
-                    newVocabularies[newId] = newVocab;
+        //             newHotspots.push(newHotspot);
+        //             newVocabularies[newId] = newVocab;
                     
-                    coordinatesInfo.innerHTML = `
-                        新熱點已建立:
-                        id: '${newId}',
-                        x: ${newHotspot.x}%, y: ${newHotspot.y}%,
-                        width: ${newHotspot.width}%, height: ${newHotspot.height}%
-                        請繼續點擊以新增更多熱點，或複製下方程式碼。
-                    `;
+        //             coordinatesInfo.innerHTML = `
+        //                 新熱點已建立:
+        //                 id: '${newId}',
+        //                 x: ${newHotspot.x}%, y: ${newHotspot.y}%,
+        //                 width: ${newHotspot.width}%, height: ${newHotspot.height}%
+        //                 請繼續點擊以新增更多熱點，或複製下方程式碼。
+        //             `;
                     
-                    // 立即在畫面上新增熱點
-                    createHotspots();
-                    updateCodeOutputs();
-                }
+        //             // 立即在畫面上新增熱點
+        //             createHotspots();
+        //             updateCodeOutputs();
+        //         }
 
-                // 重置點擊計數
-                clickCount = 0;
-            }
-        });
+        //         // 重置點擊計數
+        //         clickCount = 0;
+        //     }
+        // });
 
-        function updateCodeOutputs() {
-            let hotspotCode = 'const hotspots = [\n';
-            hotspots.forEach(h => {
-                hotspotCode += `  { id: '${h.id}', x: ${h.x}, y: ${h.y}, width: ${h.width}, height: ${h.height} },\n`;
-            });
-            newHotspots.forEach(h => {
-                hotspotCode += `  { id: '${h.id}', x: ${h.x}, y: ${h.y}, width: ${h.width}, height: ${h.height} },\n`;
-            });
-            hotspotCode += '];';
-            hotspotListTextarea.value = hotspotCode;
+        // function updateCodeOutputs() {
+        //     let hotspotCode = 'const hotspots = [\n';
+        //     hotspots.forEach(h => {
+        //         hotspotCode += `  { id: '${h.id}', x: ${h.x}, y: ${h.y}, width: ${h.width}, height: ${h.height} },\n`;
+        //     });
+        //     newHotspots.forEach(h => {
+        //         hotspotCode += `  { id: '${h.id}', x: ${h.x}, y: ${h.y}, width: ${h.width}, height: ${h.height} },\n`;
+        //     });
+        //     hotspotCode += '];';
+        //     hotspotListTextarea.value = hotspotCode;
 
-            let vocabCode = 'const vocabularies = {\n';
-            for (const id in vocabularies) {
-                const v = vocabularies[id];
-                vocabCode += `  '${id}': { thai: '${v.thai}', translation: '${v.translation}' },\n`;
-            }
-            for (const id in newVocabularies) {
-                const v = newVocabularies[id];
-                vocabCode += `  '${id}': { thai: '${v.thai}', translation: '${v.translation}' },\n`;
-            }
-            vocabCode += '};';
-            vocabListTextarea.value = vocabCode;
-        }
+        //     let vocabCode = 'const vocabularies = {\n';
+        //     for (const id in vocabularies) {
+        //         const v = vocabularies[id];
+        //         vocabCode += `  '${id}': { thai: '${v.thai}', translation: '${v.translation}' },\n`;
+        //     }
+        //     for (const id in newVocabularies) {
+        //         const v = newVocabularies[id];
+        //         vocabCode += `  '${id}': { thai: '${v.thai}', translation: '${v.translation}' },\n`;
+        //     }
+        //     vocabCode += '};';
+        //     vocabListTextarea.value = vocabCode;
+        // }
 
         createHotspots();
-        updateCodeOutputs();
+        // updateCodeOutputs();
     });
 </script>
 
