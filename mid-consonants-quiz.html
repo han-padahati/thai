@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中子音+母音複習</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        .container {
+            max-width: 600px;
+        }
+        .option-button {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .option-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex justify-center items-start min-h-screen">
+
+    <div id="app" class="container bg-white shadow-2xl rounded-xl p-6 sm:p-10 w-full border border-gray-100">
+
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b pb-4 border-indigo-100">
+            中子音+母音複習挑戰
+        </h1>
+        
+        <div id="game-screen">
+            <!-- 遊戲區塊 -->
+            <div id="quiz-area" class="space-y-6">
+
+                <!-- 進度與分數 -->
+                <div class="flex justify-between items-center text-lg font-semibold text-gray-600 bg-indigo-50 p-3 rounded-lg">
+                    <div id="score-display">得分: 0</div>
+                    <div id="progress-display">題目: 0/20</div>
+                </div>
+
+                <!-- 語音播放區 -->
+                <div class="text-center p-6 bg-indigo-100/50 rounded-xl shadow-inner space-y-4">
+                    <p class="text-xl font-medium text-gray-700">請仔細聽這個發音：</p>
+                    <button id="play-audio-btn" disabled class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-full text-lg shadow-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-150 flex items-center justify-center mx-auto" onclick="playAudio()">
+                        <svg id="audio-icon" class="w-6 h-6 mr-2" fill="white" stroke="currentColor" viewBox="0 0 234.161 234.162" xmlns="http://www.w3.org/2000/svg"><g>
+        <path d="M40.916,226.923V7.24c0-2.834,1.651-5.404,4.224-6.587c2.576-1.174,5.6-0.741,7.747,1.102l137.837,108.023
+            c1.585,1.366,2.492,3.345,2.521,5.438c0.024,2.006-0.882,4.083-2.438,5.465L52.974,232.328c-2.135,1.902-5.179,2.365-7.779,1.2
+            C42.594,232.357,40.916,229.769,40.916,226.923z"/>
+    </g></svg>
+                        <span id="audio-btn-text">點擊播放</span>
+                    </button>
+                    <!-- 檔案路徑提示，方便除錯 -->
+                    <div id="loading-spinner" class="hidden"></div>
+                    <p class="text-sm text-indigo-700 italic" id="audio-source-path"></p>
+                </div>
+
+                <!-- 選項區 -->
+                <div id="options-container" class="grid grid-cols-2 md:grid-cols-2 gap-4">
+                    <!-- 選項按鈕將由 JavaScript 注入 -->
+                </div>
+                
+            </div>
+            
+            <!-- 答案回饋 -->
+            <div id="feedback-message" class="mt-6 p-4 text-center text-white font-semibold rounded-lg hidden"></div>
+            <!-- 錯誤時顯示下一題按鈕的區域 -->
+            <div id="next-btn-area" class="mt-4 text-center hidden"></div> 
+
+        </div>
+
+        <!-- 結果區塊 -->
+        <div id="result-screen" class="hidden text-center space-y-6">
+            <h2 class="text-3xl font-bold text-indigo-600">挑戰結束！</h2>
+            <p class="text-xl text-gray-700">您總共答對了 <span id="final-score" class="text-indigo-600 font-extrabold text-4xl"></span> 題。</p>
+            
+            <!-- <h3 class="text-2xl font-semibold text-red-500 mt-8 border-t pt-4">錯誤回顧 (共 <span id="incorrect-count"></span> 題)</h3>
+            <div id="incorrect-review" class="text-left bg-gray-50 p-4 rounded-lg max-h-60 overflow-y-auto">
+                <p class="text-gray-500 italic" id="all-correct-msg">恭喜！所有題目都答對了！</p>
+            </div> -->
+            
+            <button class="mt-6 px-8 py-3 bg-green-500 text-white font-bold rounded-full text-lg hover:bg-green-600 transition duration-150" onclick="initGame()">
+                重新開始
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        let currentAudio = null; // 用於 HTML Audio 物件
+        
+        // 播放音頻
+        async function playAudio() {
+            if (currentAudio) {
+                // 停止正在播放的聲音
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                
+                // 開始播放
+                currentAudio.play().catch(e => console.error("Audio playback error:", e));
+            }
+        }
+
+        // --- 遊戲資料與邏輯 (使用本地音檔) ---
+        // 這些泰文字將被用作 MP3 檔案名 (例如: "กะ.mp3")，並且是選項顯示的內容
+        const THAI_SYLLABLES_DATA = [
+    {
+        "thai": "ตู",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ไป",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บึ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ตือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+
+    {
+        "thai": "โกะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เกา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โดะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เปือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เดา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+
+    {
+        "thai": "ปำ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ไบ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ตุ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ตอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บี",
+        "rtgs": "",
+        "meaning": ""
+    },
+
+    {
+        "thai": "เกือะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เดะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อัวะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เจียะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เกะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เบอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อำ",
+        "rtgs": "",
+        "meaning": ""
+    },
+
+    {
+        "thai": "บิ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เตือะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปิ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เปีย",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เปอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อึ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เตะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เบาะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปี",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เกาะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เปือะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดุ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เออ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บำ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กู",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อิ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เตา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กัว",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บัว",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โตะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เปอะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อี",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กุ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปึ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ไจ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดู",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แด",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แดะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เบียะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แกะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แต",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ไอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โป",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จำ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปัวะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+
+    {
+        "thai": "เบือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เกือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โบ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แก",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปัว",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เก",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เบอะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เกอะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จึ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กัวะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ตัวะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เอือะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โจ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เต",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เกีย",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จี",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เบีย",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เดียะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เจอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เปาะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จิ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แตะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เด",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เดอะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ตัว",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เออะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จู",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เดือะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จุ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เบ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เดีย",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เอียะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จัวะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เอีย",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เตาะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แบะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เป",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แจ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แป",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เจ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แปะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "จัว",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เจะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แบ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โก",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โด",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โจะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เบือะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เจา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แอะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เอือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เดือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เจาะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โต",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดิ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ตะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กี",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บัวะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เตีย",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อุ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เดอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เกอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เบะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อู",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เอาะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กิ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เดาะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เจือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดี",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ตำ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปุ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กึ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เปียะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เบา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "อัว",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เตอะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดัว",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โบะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ออ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปู",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดึ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ตา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ปือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ตึ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ได",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เอะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บู",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เจีย",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กำ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เตียะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เจือะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+
+    {
+        "thai": "เกียะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โปะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เปา",
+        "rtgs": "",
+        "meaning": ""
+    },
+
+    {
+        "thai": "เตือ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บุ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ไต",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดำ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ตี",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "บอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดัวะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เจอะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "กะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+
+    {
+        "thai": "เปะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เตอ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "โอะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ติ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ดะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "เอา",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "แจะ",
+        "rtgs": "",
+        "meaning": ""
+    },
+    {
+        "thai": "ไก",
+        "rtgs": "",
+        "meaning": ""
+    }
+];
+
+        const NUM_QUESTIONS = 20;
+
+        let availableQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let incorrectAnswers = [];
+        let currentQuestion = null;
+        let isProcessingAnswer = false;
+
+        // 簡單的洗牌函數
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 根據使用者要求，生成四個泰文字母選項 (一個正確答案 + 三個隨機干擾項)
+        function generateOptions(correctAnswer) {
+            let options = [correctAnswer.thai]; // 正確答案是泰文字母
+            const allThai = THAI_SYLLABLES_DATA.map(d => d.thai);
+
+            while (options.length < 4) {
+                const randomIndex = Math.floor(Math.random() * allThai.length);
+                const distractor = allThai[randomIndex];
+
+                if (distractor && !options.includes(distractor)) {
+                    options.push(distractor);
+                }
+            }
+
+            return shuffle(options); // 選項現在是泰文字母
+        }
+
+        // 載入當前問題
+        async function loadQuestion() {
+            if (currentQuestionIndex >= NUM_QUESTIONS) {
+                showResults();
+                return;
+            }
+
+            const questionData = availableQuestions[currentQuestionIndex];
+            
+            // 設定音檔路徑
+            const audioFilename = `syllable/${questionData.thai}.mp3`;
+            
+            currentQuestion = {
+                ...questionData,
+                options: generateOptions(questionData),
+                audioUrl: audioFilename, // 使用本地檔案名
+                userAnswer: null // 待回答
+            };
+
+            // 更新 UI 狀態
+            document.getElementById('progress-display').textContent = `題目: ${currentQuestionIndex + 1}/${NUM_QUESTIONS}`;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            document.getElementById('feedback-message').classList.add('hidden');
+            // 清除下一題按鈕區域
+            document.getElementById('next-btn-area').classList.add('hidden');
+            document.getElementById('next-btn-area').innerHTML = '';
+            
+            // document.getElementById('audio-source-path').textContent = `音源檔案：${audioFilename}`;
+
+
+            const btn = document.getElementById('play-audio-btn');
+            const btnText = document.getElementById('audio-btn-text');
+            
+            // 啟用按鈕，因為不再需要等待 API
+            btn.disabled = false;
+            btnText.textContent = '點擊播放';
+            isProcessingAnswer = false;
+            
+            // 初始化 HTML Audio 物件
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.src = currentQuestion.audioUrl;
+            } else {
+                currentAudio = new Audio(currentQuestion.audioUrl);
+            }
+            
+            // 自動播放第一遍（若瀏覽器允許）
+            playAudio();
+
+
+            // 建立選項按鈕並啟用
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                // 為了讓泰文字母選項看起來更清晰，使用更大的字體
+                button.className = 'option-button w-full px-6 py-4 bg-gray-200 text-gray-800 font-medium text-3xl rounded-lg shadow-sm';
+                
+                // 顯示和值都是泰文字母
+                button.textContent = option;
+                button.value = option; 
+                button.onclick = () => handleAnswer(option);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // 處理使用者答案
+        function handleAnswer(selectedOption) {
+            if (isProcessingAnswer) return;
+            isProcessingAnswer = true; // 鎖定互動
+
+            currentQuestion.userAnswer = selectedOption;
+            
+            // 核心變更：檢查選中的泰文字母是否等於正確的泰文字母
+            const isCorrect = selectedOption === currentQuestion.thai; 
+            const feedback = document.getElementById('feedback-message');
+            const optionsContainer = document.getElementById('options-container');
+            const playAudioBtn = document.getElementById('play-audio-btn');
+
+            // 禁用所有選項 (阻止重複作答)
+            Array.from(optionsContainer.children).forEach(button => button.disabled = true);
+            
+            // 顯示回饋
+            if (isCorrect) {
+                score++;
+                // 顯示羅馬拼音作為額外提示
+                feedback.textContent = `✅ 正確！`; 
+                feedback.className = 'mt-6 p-4 text-center text-white font-semibold rounded-lg bg-green-500';
+
+                // 突出顯示正確選項
+                Array.from(optionsContainer.children).forEach(button => {
+                    button.classList.remove('bg-gray-200', 'text-gray-800');
+                    if (button.value === currentQuestion.thai) { 
+                        button.classList.add('bg-green-500', 'text-white');
+                    } else {
+                        button.classList.add('bg-gray-300', 'text-gray-600');
+                    }
+                });
+
+                // 回答正確：禁用播放按鈕並自動跳下一題
+                playAudioBtn.disabled = true;
+                // 延遲後進入下一題
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                }, 1500);
+
+            } else {
+                // 回答錯誤：
+                incorrectAnswers.push({
+                    thai: currentQuestion.thai,
+                    correct: currentQuestion.thai, // 正確答案是 Thai 欄位
+                    user: selectedOption,
+                    meaning: currentQuestion.meaning
+                });
+                feedback.textContent = `❌ 錯誤！請再聽一次。`;
+                feedback.className = 'mt-6 p-4 text-center text-white font-semibold rounded-lg bg-red-500';
+                
+                // 突出顯示錯誤選項 (選中的是紅色，正確的是綠色)
+                Array.from(optionsContainer.children).forEach(button => {
+                    button.classList.remove('bg-gray-200', 'text-gray-800');
+                    if (button.value === currentQuestion.thai) { 
+                        button.classList.add('bg-green-500', 'text-white'); // 正確答案
+                    } else if (button.value === selectedOption) {
+                        button.classList.add('bg-red-500', 'text-white'); // 錯誤選擇
+                    } else {
+                         button.classList.add('bg-gray-300', 'text-gray-600');
+                    }
+                });
+
+
+                // 1. 啟用播放按鈕 (讓使用者重新聽音檔)
+                playAudioBtn.disabled = false;
+                
+                // 2. 顯示下一題按鈕 (手動跳轉)
+                const nextBtnArea = document.getElementById('next-btn-area');
+                nextBtnArea.classList.remove('hidden');
+                nextBtnArea.innerHTML = ''; // 清除舊內容
+                
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = '下一題';
+                nextBtn.className = 'px-6 py-3 bg-indigo-600 text-white font-bold rounded-full text-lg shadow-lg hover:bg-indigo-700 transition duration-150';
+                nextBtn.onclick = () => {
+                    nextBtnArea.classList.add('hidden'); // 隱藏按鈕
+                    currentQuestionIndex++;
+                    loadQuestion();
+                };
+                nextBtnArea.appendChild(nextBtn);
+            }
+            feedback.classList.remove('hidden');
+            document.getElementById('score-display').textContent = `得分: ${score}`;
+        }
+
+        // 顯示結果
+        function showResults() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('final-score').textContent = `${score}/${NUM_QUESTIONS}`;
+            document.getElementById('incorrect-count').textContent = incorrectAnswers.length;
+
+            const reviewContainer = document.getElementById('incorrect-review');
+            reviewContainer.innerHTML = '';
+            
+            if (incorrectAnswers.length === 0) {
+                document.getElementById('all-correct-msg').classList.remove('hidden');
+            } else {
+                document.getElementById('all-correct-msg').classList.add('hidden');
+                // incorrectAnswers.forEach(item => {
+                //     const p = document.createElement('p');
+                //     p.className = 'mb-2 p-3 border-b border-red-200 text-gray-700';
+                //     p.innerHTML = `
+                //         <strong class="text-red-600">${item.thai}</strong>：
+                //         <span class="font-medium">正確答案:</span> <span class="text-green-600 font-mono">${item.correct}</span><br>
+                //         <span class="font-medium">您的回答:</span> <span class="text-red-600 font-mono">${item.user}</span> 
+                //         <span class="text-gray-500 ml-2">(${item.meaning})</span>
+                //     `;
+                //     reviewContainer.appendChild(p);
+                // });
+            }
+        }
+
+        // 初始化遊戲
+        function initGame() {
+            // 重置狀態
+            availableQuestions = shuffle([...THAI_SYLLABLES_DATA]).slice(0, NUM_QUESTIONS);
+            currentQuestionIndex = 0;
+            score = 0;
+            incorrectAnswers = [];
+            currentQuestion = null;
+            isProcessingAnswer = false;
+
+            // 切換畫面
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('score-display').textContent = `得分: 0`;
+
+            // 開始遊戲
+            loadQuestion();
+        }
+
+        window.onload = function() {
+            initGame();
+        };
+
+        // 暴露給全局，供按鈕使用
+        window.initGame = initGame;
+        window.handleAnswer = handleAnswer;
+        window.playAudio = playAudio;
+
+    </script>
+</body>
+</html>
