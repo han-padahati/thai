@@ -24,9 +24,17 @@
             font-size: 1.5rem;
             min-width: 2rem;
             font-weight: 500;
+            cursor: pointer;
 
         }
 
+        th span {
+            font-size: 1rem;
+
+        }
+        .thai-char {
+            cursor: pointer;
+        }
         /* 針對表格單元格的點擊樣式和泰文字體設定 */
         .vowel-cell {
             cursor: pointer;
@@ -132,34 +140,34 @@
                     </tr> -->
                     <tr class="bg-gray-50 text-gray-600 text-xs sm:text-sm leading-normal">
                         <th class="py-4 px-4 sm:px-6 text-center font-medium sticky left-0 bg-gray-50 z-10"></th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">◌ะ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">◌า</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ิ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ี</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ึ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ื</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ุ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ู</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">เ◌ะ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">เ◌</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">แ◌ะ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">แ◌</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">โ◌ะ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">โ◌</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">เ◌าะ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">◌อ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">เ◌อะ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">เ◌อ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">เ◌ียะ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">เ◌ีย</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">เ◌ือะ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">เ◌ือ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ัวะ</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ัว</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ไ◌</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ใ◌</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">เ◌า</th>
-                        <th class="py-4 px-3 text-center border-x border-gray-200">ำ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอะ"><span>◌</span>ะ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอา"><span>◌</span>า</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอิ">ิ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอี">ี</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอึ">ึ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอือ">ือ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอุ">ุ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอู">ู</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระเอะ">เ<span>◌</span>ะ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระเอ">เ<span>◌</span></th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระแอะ">แ<span>◌</span>ะ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระแอ">แ<span>◌</span></th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระโอะ">โ<span>◌</span>ะ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระโอ">โ<span>◌</span></th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระเอาะ">เ<span>◌</span>าะ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระออ"><span>◌</span>อ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระเออะ">เ<span>◌</span>อะ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระเออ">เ<span>◌</span>อ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระเอียะ">เ◌ียะ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระเอีย">เ◌ีย</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระเอือะ">เ◌ือะ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระเอือ">เ◌ือ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอัวะ">ัวะ</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอัว">ัว</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระไอไม้มลาย">ไ<span>◌</span></th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระไอไม้ม้วน">ใ<span>◌</span></th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระเอา">เ<span>◌</span>า</th>
+                        <th class="py-4 px-3 text-center border-x border-gray-200 vowel-cell" data-text="สระอำ">ำ</th>
 
                     </tr>
                 </thead>
