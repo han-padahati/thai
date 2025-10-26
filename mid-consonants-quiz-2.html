@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰文字音節測驗</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 Google Sarabun (預設) 和 Prompt (Sans Serif Thai) 字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@700&family=Sarabun:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* 定義字體類別 */
+        .font-sarabun {
+            font-family: 'Sarabun', sans-serif;
+        }
+        .font-prompt {
+            font-family: 'Prompt', sans-serif;
+        }
+        /* 自定義按鈕樣式 */
+        .btn-primary {
+            /* 調整按鈕樣式，使其更寬大 (py-4 px-8) */
+            @apply bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-300 ease-in-out transform hover:scale-[1.02];
+        }
+
+        /* Switch UI 樣式 */
+        .dot {
+            transition: transform 0.3s ease;
+        }
+        #font-switch:checked ~ #switch-track {
+            background-color: #3b82f6; /* Blue-500 */
+        }
+        #font-switch:checked ~ .dot {
+            transform: translateX(24px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4 font-sarabun" id="app-container">
+
+    <!-- 字體切換 Switch UI 區塊 -->
+    <div class="w-full max-w-lg flex justify-center mb-8">
+        <div class="bg-white p-4 rounded-xl shadow w-full">
+            <label for="font-switch" class="flex items-center cursor-pointer justify-between">
+                <span class="text-gray-700 font-medium text-sm sm:text-base">字體切換：Sarabun (預設) / Prompt</span>
+                <div class="relative ml-4">
+                    <!-- Checkbox, visually hidden -->
+                    <input type="checkbox" id="font-switch" class="sr-only" onchange="toggleFont(this.checked)">
+                    <!-- Switch Track -->
+                    <div class="block bg-gray-300 w-14 h-8 rounded-full transition duration-300" id="switch-track"></div>
+                    <!-- Switch Knob -->
+                    <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full shadow-md"></div>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <!-- 泰文字顯示區塊 -->
+    <div id="syllable-display-card" class="bg-white p-8 md:p-12 rounded-3xl shadow-2xl w-full max-w-xl text-center flex flex-col items-center justify-center min-h-[300px] transition-all duration-500">
+        <div id="thai-syllable" class="text-9xl md:text-[12rem] font-bold text-gray-800 tracking-wider font-sarabun select-none">
+            —
+        </div>
+    </div>
+
+    <!-- 控制按鈕區塊 -->
+    <div class="mt-10 flex flex-col space-y-4 w-full max-w-sm">
+        <button onclick="playAudio()" class="btn-primary flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+            </svg>
+            播放音檔
+        </button>
+
+        <!-- 「下一題」按鈕：顏色改為低調的 Slate (石板灰) -->
+        <button onclick="loadNextSyllable()" class="btn-primary px-4 py-4 bg-slate-500 hover:bg-slate-600" style="color: white;">
+            下一題
+        </button>
+    </div>
+
+    <!-- 音頻播放器 (隱藏) -->
+    <audio id="audio-player" style="display: none;"></audio>
+
+    <script>
+        // 泰文字音節資料
+        const THAI_SYLLABLES_DATA = [
+            { "thai": "ตู" }, { "thai": "ไป" }, { "thai": "โอ" }, { "thai": "บึ" },
+            { "thai": "ปา" }, { "thai": "ตือ" }, { "thai": "โกะ" }, { "thai": "เกา" },
+            { "thai": "โดะ" }, { "thai": "เปือ" }, { "thai": "เดา" }, { "thai": "อะ" },
+            { "thai": "ปำ" }, { "thai": "ไบ" }, { "thai": "ตุ" }, { "thai": "ตอ" },
+            { "thai": "บี" }, { "thai": "เกือะ" }, { "thai": "อา" }, { "thai": "เดะ" },
+            { "thai": "อัวะ" }, { "thai": "เจียะ" }, { "thai": "เกะ" }, { "thai": "เบอ" },
+            { "thai": "อำ" }, { "thai": "บิ" }, { "thai": "ปะ" }, { "thai": "เตือะ" },
+            { "thai": "ปิ" }, { "thai": "บะ" }, { "thai": "กอ" }, { "thai": "จือ" },
+            { "thai": "เปีย" }, { "thai": "เปอ" }, { "thai": "อึ" }, { "thai": "เตะ" },
+            { "thai": "เบาะ" }, { "thai": "ปี" }, { "thai": "ดอ" }, { "thai": "เกาะ" },
+            { "thai": "เปือะ" }, { "thai": "ดุ" }, { "thai": "เออ" }, { "thai": "บำ" },
+            { "thai": "กู" }, { "thai": "อิ" }, { "thai": "เตา" }, { "thai": "จ" },
+            { "thai": "กัว" }, { "thai": "บัว" }, { "thai": "โตะ" }, { "thai": "เปอะ" },
+            { "thai": "อี" }, { "thai": "กุ" }, { "thai": "ปึ" }, { "thai": "บา" },
+            { "thai": "ไจ" }, { "thai": "ดู" }, { "thai": "แด" }, { "thai": "จะ" },
+            { "thai": "แดะ" }, { "thai": "เบียะ" }, { "thai": "แกะ" }, { "thai": "แต" },
+            { "thai": "ไอ" }, { "thai": "โป" }, { "thai": "จำ" }, { "thai": "อือ" },
+            { "thai": "ดือ" }, { "thai": "ปัวะ" }, { "thai": "เบือ" }, { "thai": "จา" },
+            { "thai": "เกือ" }, { "thai": "โบ" }, { "thai": "แก" }, { "thai": "ปัว" },
+            { "thai": "เก" }, { "thai": "เบอะ" }, { "thai": "เกอะ" }, { "thai": "จึ" },
+            { "thai": "กัวะ" }, { "thai": "ตัวะ" }, { "thai": "เอือะ" }, { "thai": "โจ" },
+            { "thai": "เต" }, { "thai": "เกีย" }, { "thai": "จี" }, { "thai": "เบีย" },
+            { "thai": "เดียะ" }, { "thai": "เจอ" }, { "thai": "เปาะ" }, { "thai": "จิ" },
+            { "thai": "แตะ" }, { "thai": "เด" }, { "thai": "เดอะ" }, { "thai": "ตัว" },
+            { "thai": "เออะ" }, { "thai": "จู" }, { "thai": "เดือะ" }, { "thai": "จุ" },
+            { "thai": "เบ" }, { "thai": "จอ" }, { "thai": "เดีย" }, { "thai": "เอียะ" },
+            { "thai": "จัวะ" }, { "thai": "เอีย" }, { "thai": "เตาะ" }, { "thai": "แบะ" },
+            { "thai": "เป" }, { "thai": "แจ" }, { "thai": "แป" }, { "thai": "เจ" },
+            { "thai": "แปะ" }, { "thai": "จัว" }, { "thai": "เจะ" }, { "thai": "แบ" },
+            { "thai": "โก" }, { "thai": "โด" }, { "thai": "โจะ" }, { "thai": "เบือะ" },
+            { "thai": "กือ" }, { "thai": "เจา" }, { "thai": "บือ" }, { "thai": "แอะ" },
+            { "thai": "เอือ" }, { "thai": "เดือ" }, { "thai": "เจาะ" }, { "thai": "โต" },
+            { "thai": "ดิ" }, { "thai": "ตะ" }, { "thai": "กี" }, { "thai": "บัวะ" },
+            { "thai": "เตีย" }, { "thai": "อุ" }, { "thai": "เดอ" }, { "thai": "เกอ" },
+            { "thai": "เบะ" }, { "thai": "อู" }, { "thai": "เอาะ" }, { "thai": "กิ" },
+            { "thai": "เดาะ" }, { "thai": "เจือ" }, { "thai": "ปอ" }, { "thai": "เอ" },
+            { "thai": "ดี" }, { "thai": "ตำ" }, { "thai": "ปุ" }, { "thai": "กึ" },
+            { "thai": "เปียะ" }, { "thai": "เบา" }, { "thai": "อัว" }, { "thai": "เตอะ" },
+            { "thai": "ดัว" }, { "thai": "โบะ" }, { "thai": "ออ" }, { "thai": "ปู" },
+            { "thai": "ดึ" }, { "thai": "ตา" }, { "thai": "ปือ" }, { "thai": "ตึ" },
+            { "thai": "ได" }, { "thai": "เอะ" }, { "thai": "ดา" }, { "thai": "บู" },
+            { "thai": "เจีย" }, { "thai": "กำ" }, { "thai": "เตียะ" }, { "thai": "เจือะ" },
+            { "thai": "เกียะ" }, { "thai": "โปะ" }, { "thai": "เปา" }, { "thai": "เตือ" },
+            { "thai": "กา" }, { "thai": "บุ" }, { "thai": "ไต" }, { "thai": "ดำ" },
+            { "thai": "แอ" }, { "thai": "ตี" }, { "thai": "บอ" }, { "thai": "ดัวะ" },
+            { "thai": "เจอะ" }, { "thai": "กะ" }, { "thai": "เปะ" }, { "thai": "เตอ" },
+            { "thai": "โอะ" }, { "thai": "ติ" }, { "thai": "ดะ" }, { "thai": "เอา" },
+            { "thai": "แจะ" }, { "thai": "ไก" }
+        ];
+
+        let currentSyllable = null;
+        const thaiSyllableElement = document.getElementById('thai-syllable');
+        const audioPlayer = document.getElementById('audio-player');
+
+        /**
+         * 隨機從列表中選取一個泰文字音節並顯示。
+         */
+        function loadNextSyllable() {
+            // 隨機選取一個音節
+            const randomIndex = Math.floor(Math.random() * THAI_SYLLABLES_DATA.length);
+            const selectedData = THAI_SYLLABLES_DATA[randomIndex];
+            currentSyllable = selectedData.thai;
+
+            // 更新顯示
+            thaiSyllableElement.textContent = currentSyllable;
+
+            // 快速添加並移除動畫類別，產生跳動/變化的效果
+            const card = document.getElementById('syllable-display-card');
+            card.classList.remove('animate-pulse', 'bg-red-100'); // 移除音檔播放失敗的視覺效果
+            card.classList.add('scale-105', 'opacity-0');
+            setTimeout(() => {
+                card.classList.remove('scale-105', 'opacity-0');
+            }, 50);
+
+            console.log("Current Syllable:", currentSyllable);
+        }
+
+        /**
+         * 播放當前音節的音檔。
+         */
+        function playAudio() {
+            if (!currentSyllable) {
+                console.warn("No syllable loaded yet.");
+                return;
+            }
+
+            // *** 假設您的音檔路徑為: ./audio/[泰文字].mp3 ***
+            const audioUrl = `./syllable/${currentSyllable}.mp3`;
+            audioPlayer.src = audioUrl;
+
+            // 播放音檔
+            audioPlayer.play()
+                .then(() => {
+                    console.log(`Playing audio: ${audioUrl}`);
+                })
+                .catch(error => {
+                    // 如果音檔不存在或無法播放，使用視覺效果提示
+                    const card = document.getElementById('syllable-display-card');
+                    card.classList.add('animate-pulse', 'bg-red-100');
+                    setTimeout(() => {
+                        card.classList.remove('animate-pulse', 'bg-red-100');
+                    }, 1000);
+                    console.error("Audio playback failed. Please check if the file exists:", audioUrl, error);
+                });
+        }
+
+        /**
+         * 切換泰文字的顯示字體。
+         * @param {boolean} isChecked - Switch 的狀態，true 表示切換到 Prompt 字體。
+         */
+        function toggleFont(isChecked) {
+            const bodyElement = document.getElementById('app-container');
+
+            if (isChecked) {
+                // Switch 啟用: 切換到 Prompt (Sans Serif Thai)
+                thaiSyllableElement.classList.remove('font-sarabun');
+                thaiSyllableElement.classList.add('font-prompt');
+                bodyElement.classList.remove('font-sarabun');
+                bodyElement.classList.add('font-prompt');
+            } else {
+                // Switch 關閉: 切換回 Sarabun (預設)
+                thaiSyllableElement.classList.remove('font-prompt');
+                thaiSyllableElement.classList.add('font-sarabun');
+                bodyElement.classList.remove('font-prompt');
+                bodyElement.classList.add('font-sarabun');
+            }
+            console.log("Font toggled. Prompt selected:", isChecked);
+        }
+
+        // 頁面載入完成後，初始化第一個音節
+        window.onload = function() {
+            loadNextSyllable();
+        };
+
+    </script>
+</body>
+</html>
