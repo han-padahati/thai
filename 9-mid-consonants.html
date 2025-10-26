@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰文九個中子音</title>
+    <!-- 載入 Tailwind CSS 函式庫 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans&family=Sarabun&display=swap" rel="stylesheet">
+    <style>
+        /* 設定主要字體為 Inter，並提供備用字體 */
+        body {
+            font-family: 'Sarabun',sans-serif;
+            background-color: #f7f9fc; /* 淺綠色背景 */
+        }
+        /* 圖片外層容器：用於定位 Overlay */
+        .gif-wrapper {
+            position: relative;
+            cursor: pointer;
+            width: 100%;
+            height: 160px; /* 確保高度一致 */
+        }
+        /* 筆順圖片容器樣式 */
+        .gif-container {
+            width: 100%;
+            height: 100%;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .gif-image {
+            width: auto;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            /* 初始狀態（靜態圖）時保持亮度 */
+        }
+        /* 播放按鈕覆蓋層 */
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.2); /* 輕微遮罩 */
+            border-radius: 0.5rem;
+            transition: opacity 0.3s;
+        }
+        /* 播放按鈕圖示 */
+        .play-icon {
+            color: white;
+            opacity: 0.9;
+            width: 3rem;
+            height: 3rem;
+            transition: transform 0.2s;
+        }
+        .gif-wrapper:hover .play-icon {
+            transform: scale(1.1);
+        }
+
+        /* 字符區域的樣式 */
+        .char-audio-area {
+            cursor: pointer; /* 讓整個區域有可點擊的視覺提示 */
+            transition: color 0.1s ease;
+        }
+        .char-audio-area:hover .char-text {
+             color: #059669; /* Hover 時變更顏色 */
+        }
+
+        .font-noto-sans {
+            font-family: "Noto Sans";
+        }
+
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="text-center mb-10">
+            <h4 class="text-xl md:text-xl font-extrabold text-[#065f46] mb-2">
+                點擊字母聽字母發音，點擊影片看書寫筆順
+            </h4>
+        </header>
+
+        <!-- 中子音列表網格 -->
+        <div id="consonant-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- 泰文字符卡片將由 JavaScript 注入此處 -->
+        </div>
+
+        <!-- 訊息彈出視窗 (用於替代 alert()) -->
+        <div id="message-box" class="fixed bottom-5 right-5 p-4 rounded-lg shadow-xl text-white transition-opacity duration-300 opacity-0 pointer-events-none" style="background-color: #f59e0b;">
+            <span id="message-text"></span>
+        </div>
+
+    </div>
+
+    <script>
+        // 泰文九個中子音的資料
+        const THAI_MID_CONSONANTS = [
+            // **請替換 gifUrl, staticUrl 和 durationMs (毫秒) 為您實際的連結和時長**
+            { char: 'ก', name: 'ก. ไก่', romanization: 'kᴐ̄: kǎi', transliteration: 'k/k', gifUrl: './characters/ก.gif', staticUrl: './characters/ก.png', durationMs: 5400, audioUrl: './syllable/ก.mp3' }, // 假設播放 2.5 秒
+            { char: 'จ', name: 'จ.จาน', romanization: 'jᴐ̄: jā:n', transliteration: 'j/t', gifUrl: './characters/จ.gif', staticUrl: './characters/จ.png', durationMs: 4200, audioUrl: './syllable/จ.mp3' }, // 假設播放 3.5 秒
+            { char: 'ฎ', name: 'ฎ.ชฎา', romanization: 'dᴐ̄: chã dā:', transliteration: 'd/t', gifUrl: './characters/ฎ.gif', staticUrl: './characters/ฎ.png', durationMs: 5600, audioUrl: './syllable/ฎ.mp3' }, 
+            { char: 'ฏ', name: 'ฏ.ปฏัก', romanization: 'tᴐ̄: pǎ tǎk', transliteration: 't/t', gifUrl: './characters/ฏ.gif', staticUrl: './characters/ฏ.png', durationMs: 5200, audioUrl: './syllable/ฏ.mp3' }, 
+            { char: 'ด', name: 'ด.เด็ก', romanization: 'dᴐ̄: děk', transliteration: 'd/t', gifUrl: './characters/ด.gif', staticUrl: './characters/ด.png', durationMs: 3200, audioUrl: './syllable/ด.mp3' }, 
+            { char: 'ต', name: 'ต.เต่า', romanization: 'tᴐ̄: tǎo', transliteration: 't/t', gifUrl: './characters/ต.gif', staticUrl: './characters/ต.png', durationMs: 2800, audioUrl: './syllable/ต.mp3' }, 
+            { char: 'บ', name: 'บ.ใบไม้', romanization: 'bᴐ̄: bāi mãi', transliteration: 'b/p', gifUrl: './characters/บ.gif', staticUrl: './characters/บ.png', durationMs: 3600, audioUrl: './syllable/บ.mp3' }, 
+            { char: 'ป', name: 'ป.ปลา', romanization: 'pᴐ̄: plā:', transliteration: 'p/p', gifUrl: './characters/ป.gif', staticUrl: './characters/ป.png', durationMs: 3600, audioUrl: './syllable/ป.mp3' }, 
+            { char: 'อ', name: 'อ.อ่าง', romanization: 'ᴐ̄: ǎ:ng', transliteration: '', gifUrl: './characters/อ.gif', staticUrl: './characters/อ.png', durationMs: 3200, audioUrl: './syllable/อ.mp3' }
+        ];
+
+        const audioCache = {};
+        // ----------------------------------------------------
+        // 1. 播放/重播 GIF 動畫邏輯
+        // ----------------------------------------------------
+
+        /**
+         * 播放 GIF 動畫。
+         * 透過切換圖片來源為 GIF 檔案來啟動動畫，並在結束後換回靜態圖。
+         * @param {HTMLElement} wrapper - GIF 容器 (gif-wrapper)。
+         * @param {string} gifUrl - 實際的 GIF 檔案 URL。
+         * @param {string} staticUrl - 靜態圖片的 URL。
+         * @param {string} char - 字符名稱 (用於訊息)。
+         * @param {number} durationMs - GIF 播放的實際時長 (毫秒)。
+         */
+        function playGif(wrapper, gifUrl, staticUrl, char, durationMs) {
+            const imgElement = wrapper.querySelector('img');
+            const overlayElement = wrapper.querySelector('.play-overlay');
+
+            // 1. 隱藏播放按鈕
+            overlayElement.classList.add('hidden');
+            imgElement.classList.remove('filter'); 
+            
+            // 2. 切換到 GIF 模式並強制重載動畫
+            // 確保瀏覽器將圖片視為新資源，強制動畫從頭開始。
+            const timestampUrl = gifUrl + '?t=' + new Date().getTime();
+            imgElement.src = '';
+            imgElement.src = timestampUrl;
+
+            // showMessage(`正在播放 ${char} 的筆順動畫 (${durationMs}ms)...`, 'bg-blue-500');
+
+            // 3. 設置定時器，使用動態時長模擬動畫結束後再次顯示播放按鈕
+            setTimeout(() => {
+                // 將圖片來源換回靜態圖，使其「暫停」在第一刻
+                imgElement.src = staticUrl; 
+                
+                // 顯示播放按鈕和遮罩
+                overlayElement.classList.remove('hidden');
+            }, durationMs); // 使用動態時長
+        }
+
+        /**
+         * 播放音檔。
+         * 建立或取得 Audio 物件，並播放音檔。
+         * @param {string} audioUrl - 音檔的 URL。
+         * @param {string} char - 字符名稱 (用於訊息)。
+         */
+        function playAudio(audioUrl, char) {
+            // 檢查 URL 是否有效
+            if (!audioUrl || audioUrl.includes('placeholder')) {
+                showMessage(`抱歉，${char} 的音檔連結無效，請檢查 THAI_MID_CONSONANTS 陣列中的 audioUrl。`, 'bg-red-500');
+                return;
+            }
+
+            try {
+                // 使用快取：如果已創建過 Audio 物件，直接使用它
+                if (!audioCache[audioUrl]) {
+                    audioCache[audioUrl] = new Audio(audioUrl);
+                }
+                
+                const audio = audioCache[audioUrl];
+                
+                // 停止任何正在播放的實例，然後重頭播放
+                audio.pause();
+                audio.currentTime = 0;
+                audio.play()
+                    .then(() => {
+                        // showMessage(`正在播放 ${char} 的發音！`, 'bg-green-500');
+                    })
+                    .catch(error => {
+                        // 處理瀏覽器阻止自動播放、檔案不存在等錯誤
+                        showMessage(`播放 ${char} 的發音時發生錯誤 (音檔載入失敗或被阻止自動播放)。`, 'bg-red-500');
+                        console.error('Audio playback error:', error);
+                    });
+            } catch (e) {
+                showMessage('播放音檔時發生意外錯誤。', 'bg-red-500');
+                console.error('General audio error:', e);
+            }
+        }
+
+
+        // ----------------------------------------------------
+        // 2. UI 渲染
+        // ----------------------------------------------------
+
+        const gridContainer = document.getElementById('consonant-grid');
+
+        THAI_MID_CONSONANTS.forEach(consonant => {
+            const card = document.createElement('div');
+            card.className = 'bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 flex flex-col items-center border border-gray-100';
+
+            card.innerHTML = `
+                <!-- 字符名稱和轉寫 -->
+                <p class="char-audio-area text-lg text-gray-700 mb-4" onclick="playAudio('${consonant.audioUrl}', '${consonant.char}')"><span class="text-7xl char-text">${consonant.char}</span></p>
+                <p class="text-3xl font-semibold text-gray-700 mb-2">${consonant.name}</p>
+                <p class="text-lg font-semibold text-gray-700 font-noto-sans mb-4">${consonant.romanization}</p>
+
+                <!-- GIF 筆順顯示區 (外層包裝器，用於點擊事件) -->
+                <div class="gif-wrapper mb-4" 
+                     onclick="playGif(this, '${consonant.gifUrl}', '${consonant.staticUrl}', '${consonant.char}', ${consonant.durationMs})"
+                     title="點擊播放筆順動畫">
+                    
+                    <div class="gif-container">
+                        <!-- 初始載入靜態圖片，作為動畫的第一幀 -->
+                        <img src="${consonant.staticUrl}" 
+                             alt="${consonant.char} 靜態預覽圖" 
+                             class="gif-image" 
+                             onerror="this.src='https://placehold.co/160x160/CCFBF1/065F46?text=STATIC+Loading+Failed'; showMessage('${consonant.char} 的靜態圖片載入失敗！', 'bg-red-600')">
+                    </div>
+                    
+                    <!-- 播放按鈕覆蓋層 -->
+                    <div class="play-overlay" id="overlay-${consonant.char}">
+                        <!-- Play 圖示 (Inline SVG) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="play-icon" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+
+                </div>
+                
+                <!-- 字符本體 -->
+                <!-- <div>[${consonant.transliteration}]</div> -->
+            `;
+            gridContainer.appendChild(card);
+        });
+
+        // ----------------------------------------------------
+        // 3. 輔助函式 (訊息框)
+        // ----------------------------------------------------
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        let messageTimeout;
+
+        /**
+         * 顯示自定義訊息框
+         * @param {string} message - 要顯示的訊息
+         * @param {string} bgColorClass - 訊息框的 Tailwind 顏色類別
+         */
+        function showMessage(message, bgColorClass) {
+            clearTimeout(messageTimeout);
+            
+            // 更新背景顏色和文字
+            messageBox.className = messageBox.className.replace(/bg-\w+-\d+/g, bgColorClass);
+            messageText.textContent = message;
+
+            // 顯示訊息框
+            messageBox.classList.remove('opacity-0', 'pointer-events-none');
+            messageBox.classList.add('opacity-100');
+
+            // 設置計時器，3秒後隱藏
+            messageTimeout = setTimeout(() => {
+                messageBox.classList.remove('opacity-100');
+                messageBox.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // 首次載入時給予替換提示
+        window.onload = () => {
+             // showMessage('已更新為「動態時長」模式。請務必在 THAI_MID_CONSONANTS 陣列中填寫正確的 durationMs！', 'bg-yellow-600');
+        };
+
+    </script>
+
+</body>
+</html>
