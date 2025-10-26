@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰文聲調符號</title>
+    <!-- 載入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 Google Fonts：Noto Serif Thai (預設) & Noto Sans Thai -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai&family=Sarabun&display=swap" rel="stylesheet">
+    <!-- 載入 Lucide Icons (用於播放按鈕) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* 定義字體類別 */
+        .font-serif-thai { font-family: 'Sarabun'; }
+/*        .font-sans-thai { font-family: 'Noto Sans Thai'; }*/
+        /* 確保字體在不同螢幕尺寸下保持一致和美觀 */
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'thai-primary': '#467ee5',
+                        'thai-secondary': '#293f66',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8">
+
+    <div id="app-container" class="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-2xl transition-all font-serif-thai">
+
+        <!-- 標題 -->
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-8 text-gray-800  pb-4 border-thai-secondary">
+            泰文聲調符號
+        </h1>
+
+        <!-- 1. 字體切換開關 -->
+        <!-- <div class="flex items-center justify-center mb-10 p-4 bg-purple-50 rounded-lg shadow-inner">
+            <span class="text-sm font-medium text-gray-700 mr-3">Google Noto Serif Thai (預設)</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="fontToggle" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-thai-primary/30 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-thai-primary"></div>
+            </label>
+            <span class="text-sm font-medium text-gray-700 ml-3">Google Noto Sans Thai</span>
+        </div> -->
+
+        <!-- 2. 聲調符號顯示區 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+
+            <!-- 聲調卡片結構 (共四個) -->
+            <!-- 1. Mai Ek (低調/Low) - ่ -->
+            <div class="tone-card flex flex-col items-center p-4 md:p-6 bg-white border border-gray-200 rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02]">
+                <div class="thai-char text-[6rem] md:text-[8rem] leading-none text-red-600 font-bold mb-4" data-tone-key="mai_ek">
+                  <span>&nbsp;</span>  ่ 
+                </div>
+                <p class="text-xl font-semibold text-gray-700">
+                    ไม้เอก
+                </p>
+                <p class="text-lg font-semibold text-gray-700 mb-4">
+                    mãi ě:k
+                </p>
+                <!-- 羅馬拼音位置和播放按鈕 -->
+                <div class="flex items-center space-x-2 w-full justify-center">
+                    <button onclick="playAudio('mai_ek')" class="audio-btn p-2 bg-thai-secondary text-white rounded-full shadow-md hover:bg-thai-primary transition duration-150 transform hover:scale-105" title="播放音檔">
+                        <i data-lucide="volume-2" class="w-5 h-5"></i>
+                    </button>
+                    <audio id="audio-mai_ek" src=""></audio>
+                </div>
+            </div>
+
+            <!-- 2. Mai Tho (降調/Falling) - ้ -->
+            <div class="tone-card flex flex-col items-center p-4 md:p-6 bg-white border border-gray-200 rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02]">
+                <div class="thai-char text-[6rem] md:text-[8rem] leading-none text-orange-600 font-bold mb-4" data-tone-key="mai_tho">
+                  <span>&nbsp;</span>  ้
+                </div>
+                <p class="text-xl font-semibold text-gray-700">
+                    ไม้โท
+                </p>
+                <p class="text-lg font-semibold text-gray-700 mb-4">
+                    mãi thō:
+                </p>
+                <div class="flex items-center space-x-2 w-full justify-center">
+                    
+                    <button onclick="playAudio('mai_tho')" class="audio-btn p-2 bg-thai-secondary text-white rounded-full shadow-md hover:bg-thai-primary transition duration-150 transform hover:scale-105" title="播放音檔">
+                        <i data-lucide="volume-2" class="w-5 h-5"></i>
+                    </button>
+                    <audio id="audio-mai_tho" src=""></audio>
+                </div>
+            </div>
+
+            <!-- 3. Mai Tri (高調/High) - ๊ -->
+            <div class="tone-card flex flex-col items-center p-4 md:p-6 bg-white border border-gray-200 rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02]">
+                <div class="thai-char text-[6rem] md:text-[8rem] leading-none text-green-600 font-bold mb-4" data-tone-key="mai_tri">
+                  <span>&nbsp;</span>  ๊  
+                </div>
+                <p class="text-xl font-semibold text-gray-700">
+                    ไม้ตรี
+                </p>
+                <p class="text-lg font-semibold text-gray-700 mb-4">
+                    mãi trī:
+                </p>
+                <div class="flex items-center space-x-2 w-full justify-center">
+                    
+                    <button onclick="playAudio('mai_tri')" class="audio-btn p-2 bg-thai-secondary text-white rounded-full shadow-md hover:bg-thai-primary transition duration-150 transform hover:scale-105" title="播放音檔">
+                        <i data-lucide="volume-2" class="w-5 h-5"></i>
+                    </button>
+                    <audio id="audio-mai_tri" src=""></audio>
+                </div>
+            </div>
+
+            <!-- 4. Mai Chattawa (升調/Rising) - ๋ -->
+            <div class="tone-card flex flex-col items-center p-4 md:p-6 bg-white border border-gray-200 rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02]">
+                <div class="thai-char text-[6rem] md:text-[8rem] leading-none text-blue-600 font-bold mb-4" data-tone-key="mai_chattawa">
+                   <span>&nbsp;</span> ๋ 
+                </div>
+                <p class="text-xl font-semibold text-gray-700">
+                    ไม้จัตวา
+                </p>
+                <p class="text-lg font-semibold text-gray-700 mb-4">
+                    mãi jǎt tă wā:
+                </p>
+                <div class="flex items-center space-x-2 w-full justify-center">
+                
+                    <button onclick="playAudio('mai_chattawa')" class="audio-btn p-2 bg-thai-secondary text-white rounded-full shadow-md hover:bg-thai-primary transition duration-150 transform hover:scale-105" title="播放音檔">
+                        <i data-lucide="volume-2" class="w-5 h-5"></i>
+                    </button>
+                    <audio id="audio-mai_chattawa" src=""></audio>
+                </div>
+            </div>
+
+        </div>
+
+        <p id="error-message" class="mt-4 text-center text-red-500 font-semibold hidden"></p>
+    </div>
+
+    <script>
+        // 確保 Lucide Icons 被渲染
+        lucide.createIcons();
+
+        // ------------------------------------
+        // 字體切換邏輯
+        // ------------------------------------
+        // document.getElementById('fontToggle').addEventListener('change', function() {
+        //     // 獲取所有泰文字符的顯示元素
+        //     const thaiCharElements = document.querySelectorAll('.thai-char');
+        //     const isSans = this.checked;
+
+        //     thaiCharElements.forEach(element => {
+        //         if (isSans) {
+        //             // 切換到 Noto Sans Thai
+        //             element.classList.remove('font-serif-thai');
+        //             element.classList.add('font-sans-thai');
+        //         } else {
+        //             // 切換回 Noto Serif Thai (預設)
+        //             element.classList.remove('font-sans-thai');
+        //             element.classList.add('font-serif-thai');
+        //         }
+        //     });
+        // });
+
+
+        // ------------------------------------
+        // 音檔播放邏輯 (請替換為您自己的音檔 URL 或 Base64 數據)
+        // ------------------------------------
+
+        // 提示: 請將下方的 "" 替換為您自己的音檔 Base64 編碼，例如: "data:audio/mp3;base64,AAAA..."
+        const audioUrls = {
+            'mai_ek': "./syllable/ไม้เอก.mp3", // 低調
+            'mai_tho': "./syllable/ไม้โท.mp3", // 降調
+            'mai_tri': "./syllable/ไม้ตรี.mp3", // 高調
+            'mai_chattawa': "./syllable/ไม้จัตวา.mp3" // 升調
+        };
+
+        const errorMessageElement = document.getElementById('error-message');
+
+        /**
+         * 播放指定聲調的音檔
+         * @param {string} key - 聲調的鍵值 ('mai_ek', 'mai_tho', 'mai_tri', 'mai_chattawa')
+         */
+        function playAudio(key) {
+            errorMessageElement.classList.add('hidden');
+            const audio = document.getElementById(`audio-${key}`);
+            const audioSrc = audioUrls[key];
+
+            if (!audioSrc || audioSrc.includes('placeholder')) {
+                // 如果音檔連結是預留位置，則顯示錯誤訊息
+                console.error(`Error: Audio source for ${key} is a placeholder. Please replace it with your actual audio file.`);
+                errorMessageElement.textContent = `錯誤：${key} 的音檔尚未設定。請替換程式碼中的 audioUrls 鏈接。`;
+                errorMessageElement.classList.remove('hidden');
+                // 模擬播放按鈕的視覺回饋
+                const button = document.querySelector(`button[onclick="playAudio('${key}')"]`);
+                button.classList.add('bg-red-500', 'ring-2', 'ring-red-300');
+                setTimeout(() => {
+                    button.classList.remove('bg-red-500', 'ring-2', 'ring-red-300');
+                    button.classList.add('bg-thai-secondary');
+                }, 500);
+                return;
+            }
+
+            // 設置音源並播放
+            audio.src = audioSrc;
+            audio.load();
+            audio.play().catch(error => {
+                console.error("Audio playback failed:", error);
+                errorMessageElement.textContent = "音檔播放失敗，請檢查您的音檔路徑或瀏覽器設定。";
+                errorMessageElement.classList.remove('hidden');
+            });
+        }
+
+        // 載入時將音檔 URL 預設設置給 audio 元素
+        document.addEventListener('DOMContentLoaded', () => {
+            for (const key in audioUrls) {
+                const audio = document.getElementById(`audio-${key}`);
+                if (audio) {
+                    audio.src = audioUrls[key];
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
