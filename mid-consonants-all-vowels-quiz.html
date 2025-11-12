@@ -131,7 +131,109 @@
 
     <script>
         // CSV 數據內容，來自於用戶上傳的 '單字表 - 中子音+尾音+變形母音.csv'
-        const csvData = `
+        const csvData = `แก้ว,kæ̀:w
+เก่ง,kě:ng
+บอก,bᴐ̌:k
+เดือน,deū:an
+เดียว,dī:aw
+ดึก,deǔk
+อึดอัด,eǔt ǎt
+ดูด,dǔ:t
+ตัด,tǎt
+จูน,jū:n
+ปั๊ม,pãm
+แจก,jæ̌:k
+ปูน,pū:n
+จุง,jūng
+จูง,jū:ng
+เจน,jē:n
+ปอด,pᴐ̌:t
+เดียว,dī:aw
+โดย,dō:i
+บูม,bū:m
+ติด,tǐt
+จัด,jǎt
+จิบ,jǐp
+จับ,jǎp
+จีบ,jǐ:p
+เดือย,deū:ai
+ตอน,tᴐ̄:n
+ตาย,tā:i
+บาง,bā:ng
+กัด,kǎt
+อ่าน,ǎ:n
+เกม,kē:m
+ออก,ᴐ̌:k
+กาย,kā:i
+ตั้ง,tàng
+แต่ง,tæ̌:ng
+ตอบ,tᴐ̌:p
+จอด,jᴐ̌:t
+ป้อม,pᴐ̀:m
+ป้อน,pᴐ̀:n
+กิจ,kǐt
+การ,kā:n
+กาล,kā:n
+บาล,bā:n
+บ่อย,bᴐ̌:i
+เจียว,jī:aw
+เตี๋ยว,tí:aw
+จ๊อกกิ้ง,jᴐ̃:k kìng
+อาเจียน,ā: jī:an
+เจอกัน,jə̄: kān
+ตัวเอง,tū:a ē:ng
+ตื่นเต้น,teǔ:n tè:n
+อินเดีย,īn dī:a
+จิตใจ,jǐt jāi
+ปัจจุบัน,pǎt jǔ bān
+กิน,kīn
+ตอน,tᴐ̄:n
+บ่าย,bǎ:i
+กับ,kǎp
+ป้าย,pà:i
+แปด,pæ̌:t
+ต้ม,tòm
+ต้น,tòn
+ก้น,kòn
+ก้ม,kòm
+บ้าน,bà:n
+ปีก,pǐ:k
+โจ๊ก,jõ:k
+จิ้มจุ่ม,jìm jǔm
+แกง,kǣ:ng
+จืด,jeǔ:t
+ดอก,dᴐ̌:k
+เบี้ย,bì:a
+ปิด,pǐt
+เปิด,pə̌:t
+อาย,ā:i
+ตับ,tǎp
+เดิน,də̄:n
+เกิด,kə̌:t
+เดิม,də̄:m
+เติม,tə̄:m
+เต็ม,tēm
+เติบโต,tə̌:p tō:
+ใบเตย,bāi tə̄:i
+เกย,kə̄:i
+อ้วน,ù:an
+ปวด,pǔ:at
+ก๋วยเตี๋ยว,kú:ai tí:aw
+อวย,ū:ai
+ปวย,pū:ai
+ด้วยกัน,dù:ai kān
+ดม,dōm
+กด,kǒt
+ตด,tǒt
+ตกใจ,tǒk jāi
+จน,jōn
+ปม,pōm
+จง,jōng
+เจ็ด,jět
+เป็ด,pět
+เอ็ด,ět
+เป็น,pēn
+เจ็บ,jěp
 ตุ๋น,tún`;
 
         // 全域狀態
@@ -247,7 +349,11 @@
             // 2. 播放音檔
             // 檔名：使用泰文字詞，並確保 URL 編碼 (路徑已更改為 ./syllable/)
             const audioFileName = encodeURIComponent(thaiWord.replace(/\s/g, '_')); // 替換空格為底線並編碼
-            const audioUrl = `./syllable/${audioFileName}.mp3`; // 新的路徑
+            let audioUrl = `./syllable/${audioFileName}.mp3`; // 新的路徑
+
+            if (audioFileName == "%E0%B8%95%E0%B9%8B%E0%B8%B8%E0%B8%99") {
+                audioUrl  = './syllable/tun.mp3';
+            }
 
             // 禁用按鈕以防止連點，直到音檔播放完畢
             playButton.disabled = true;
