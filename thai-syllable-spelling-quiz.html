@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰文音節拼讀練習</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 Google Sarabun (預設) 和 Prompt (Sans Serif Thai) 字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@700&family=Sarabun:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* 定義字體類別 */
+        .font-sarabun {
+            font-family: 'Sarabun', sans-serif;
+        }
+        .font-prompt {
+            font-family: 'Prompt', sans-serif;
+        }
+        
+        /* === 播放按鈕 (Teal 綠松石色 - Primary) === */
+        .btn-primary {
+            /* 預設背景色 (Teal 600) */
+            background-color: #0d9488; 
+            /* 調整按鈕樣式，使其更寬大 (py-4 px-8) */
+            @apply hover:bg-teal-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-300 ease-in-out transform hover:scale-[1.02];
+            color: white;
+        }
+
+        /* === 載入按鈕 (Blue-Gray 藍灰色 - Secondary) === */
+        .btn-secondary {
+            /* 預設背景色 (Gray 500) */
+            background-color: #6b7280; 
+            /* 新增次要按鈕樣式 */
+            @apply hover:bg-gray-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition duration-300 ease-in-out transform hover:scale-[1.02];
+            color: white;
+        }
+
+
+        /* Switch UI 樣式 */
+        .dot {
+            transition: transform 0.3s ease;
+        }
+        #font-switch:checked ~ #switch-track {
+            background-color: #0d9488; /* Teal 600 */
+        }
+        #font-switch:checked ~ #switch-track > .dot {
+            transform: translateX(100%);
+        }
+        /* 讓頁面高度佔滿視窗 */
+        #app-container {
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center font-sarabun" id="app-container">
+
+    <div class="p-4 md:p-8">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-4 text-center">泰文音節拼讀練習</h1>
+
+        <!-- 字體切換區域 (保持在頂部) -->
+        <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 mb-6">
+            <!-- 字體切換開關 -->
+            <div class="flex items-center space-x-2">
+                <span class="text-sm font-medium text-gray-700">字體切換 (Sarabun/Prompt)</span>
+                <label for="font-switch" class="flex items-center cursor-pointer">
+                    <div class="relative">
+                        <!-- Input (Hidden) -->
+                        <input id="font-switch" type="checkbox" class="sr-only" onchange="toggleFont(this.checked)">
+                        <!-- Track -->
+                        <div id="switch-track" class="w-10 h-6 bg-gray-300 rounded-full shadow-inner transition-colors duration-300"></div>
+                        <!-- Dot -->
+                        <div class="dot absolute w-4 h-4 bg-white rounded-full shadow inset-y-1 left-1"></div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- 題目類型選擇區域 -->
+        <div class="bg-white p-6 rounded-2xl shadow-lg mb-6 max-w-lg mx-auto">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 text-center">選擇練習範圍（可複選）</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label class="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                    <input type="checkbox" id="quiz-mid-vowels" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500" onchange="handleQuizTypeChange()" checked>
+                    <span class="text-sm font-medium text-gray-700">中子音+母音</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                    <input type="checkbox" id="quiz-mid-comprehensive" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500" onchange="handleQuizTypeChange()">
+                    <span class="text-sm font-medium text-gray-700">中子音綜合練習</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                    <input type="checkbox" id="quiz-high-comprehensive" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500" onchange="handleQuizTypeChange()">
+                    <span class="text-sm font-medium text-gray-700">高子音綜合練習</span>
+                </label>
+                <!-- <label class="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                    <input type="checkbox" id="quiz-low-comprehensive" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500" onchange="handleQuizTypeChange()">
+                    <span class="text-sm font-medium text-gray-700">低子音綜合練習</span>
+                </label> -->
+            </div>
+        </div>
+
+        <!-- 進度追蹤器 -->
+        <div id="progress-tracker" class="text-lg font-semibold text-gray-700 mb-4 text-center h-6">
+            載入中...
+        </div>
+
+        <!-- 測驗卡片 -->
+        <div id="quiz-card" class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-lg text-center" style="min-width: 400px">
+
+            <!-- 泰文字音節顯示區 -->
+            <div id="thai-syllable" class="font-sarabun text-[120px] mb-2 select-none text-teal-700">
+                <!-- 初始載入時的文字 -->
+                載入中...
+            </div>
+
+            <!-- 羅馬拼音顯示區 -->
+            <p id="romanization" class="text-3xl font-mono text-gray-500 mt-2 mb-8 h-8 opacity-0 transition-opacity duration-500">
+                <!-- 羅馬拼音將顯示在這裡 -->
+            </p>
+
+            <!-- 按鈕區塊 (調整為垂直堆疊, space-y-4) -->
+            <!-- 移除 sm:flex-row 和 sm:space-x-4，確保在所有尺寸上都垂直堆疊 -->
+            <div class="flex flex-col justify-center space-y-4 mb-6"> 
+                <!-- 播放按鈕 -->
+                <!-- 確保按鈕佔滿整個寬度 (w-full) -->
+                <button id="play-sound-btn" onclick="playSound()" class="btn-primary flex items-center justify-center w-full px-3 py-3 rounded-xl" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                    播放音檔 (空白鍵)
+                </button>
+                
+                <!-- 載入下一個音節按鈕 -->
+                <!-- 確保按鈕佔滿整個寬度 (w-full) -->
+                <button id="next-syllable-btn" onclick="loadNextSyllable()" class="btn-secondary flex items-center justify-center w-full  px-3 py-3 rounded-xl">
+                    載入下一個詞 (→)
+                </button>
+            </div>
+
+            <!-- 訊息顯示區 (用於顯示音檔錯誤等訊息) -->
+            <div id="message-box" class="h-6 text-sm text-red-500 font-medium"></div>
+
+        </div>
+
+        <!-- 泰文羅馬拼音備註區 -->
+  <!--       <div class="mt-8 text-center text-gray-600 text-sm max-w-lg mx-auto p-4 bg-white rounded-xl shadow-lg">
+            <p><strong>備註：</strong></p>
+            <p>羅馬拼音會在點擊「播放音檔」時顯示。</p>
+            <p>音檔檔案名稱應為泰文字詞，並放在 <code>./syllable/</code> 資料夾中。例如泰文字為「แก้ว」，則音檔需命名為 <code>syllable/แก้ว.mp3</code>。</p>
+            <p class="mt-2 font-bold">新增快捷鍵：右箭頭 (→) 載入下一個詞，空白鍵 (Spacebar) 播放音檔。</p>
+        </div> -->
+
+    </div>
+
+
+    <script>
+        // CSV 數據內容 - 中子音+母音
+        const csvDataMidVowels = `ตู,tū:
+ไป,pāy
+โอ,ō:
+บึ,beǔ
+ปา,pā:
+ตือ,teū:
+โกะ,kǒ
+เกา,kāw
+โดะ,dǒ
+เปือ,peū:a
+เดา,dāw
+อะ,ǎ
+ปำ,pām
+ไบ,bāy
+ตุ,tǔ
+ตอ,tᴐ̄:
+บี,bī:
+เกือะ,keǔa
+อา,ā:
+เดะ,dě
+อัวะ,ǔa
+เจียะ,jǐa
+เกะ,kě
+เบอ,bə̄:
+อำ,ām
+บิ,bǐ
+ปะ,pǎ
+เตือะ,teǔa
+ปิ,pǐ
+บะ,bǎ
+กอ,kᴐ̄:
+จือ,jeū:
+เปีย,pī:a
+เปอ,pə̄:
+อึ,eǔ
+เตะ,tě
+เบาะ,bᴐ̌
+ปี,pī:
+ดอ,dᴐ̄:
+เกาะ,kᴐ̌
+เปือะ,peǔa
+ดุ,dǔ
+เออ,ə̄:
+บำ,bām
+กู,kū:
+อิ,ǐ
+เตา,tāw
+จ,jᴐ̄:
+กัว,kū:a
+บัว,bū:a
+โตะ,tǒ
+เปอะ,pə̌
+อี,ī:
+กุ,kǔ
+ปึ,peǔ
+บา,bā:
+ไจ,jāy
+ดู,dū:
+แด,dǣ:
+จะ,jǎ
+แดะ,dæ̌
+เบียะ,bǐa
+แกะ,kæ̌
+แต,tǣ:
+ไอ,āi
+โป,pō:
+จำ,jām
+อือ,eū:
+ดือ,deū:
+ปัวะ,pǔa
+เบือ,beū:a
+จา,jā:
+เกือ,keū:a
+โบ,bō:
+แก,kǣ:
+ปัว,pū:a
+เก,kē:
+เบอะ,bə̌
+เกอะ,kē: ǎ
+จึ,jeǔ
+กัวะ,kǔa
+ตัวะ,tǔa
+เอือะ,eǔa
+โจ,jō:
+เต,tē:
+เกีย,kī:a
+จี,jī:
+เบีย,bī:a
+เดียะ,dīa
+เจอ,jə̄:
+เปาะ,pᴐ̌
+จิ,jǐ
+แตะ,tæ̌
+เด,dē:
+เดอะ,də̌
+ตัว,tū:a
+เออะ,ə̌
+จู,jū:
+เดือะ,deǔa
+จุ,jǔ
+เบ,bē:
+จอ,jᴐ̄:
+เดีย,dī:a
+เอียะ,ǐa
+จัวะ,jǔa
+เอีย,ī:a
+เตาะ,tᴐ̌
+แบะ,bæ̌
+เป,pē:
+แจ,jǣ:
+แป,pǣ:
+เจ,jē:
+แปะ,pæ̌
+จัว,jū:a
+เจะ,jě
+แบ,bǣ:
+โก,kō:
+โด,dō:
+โจะ,jǒ
+เบือะ,beǔa
+กือ,keū:
+เจา,jāw
+บือ,beū:
+แอะ,æ̌
+เอือ,eū:a
+เดือ,deū:a
+เจาะ,jᴐ̌
+โต,tō:
+ดิ,dǐ
+ตะ,tǎ
+กี,kī:
+บัวะ,bǔa
+เตีย,tī:a
+อุ,ǔ
+เดอ,də̄:
+เกอ,kə̄:
+เบะ,bě
+อู,ū:
+เอาะ,ᴐ̌
+กิ,kǐ
+เดาะ,dᴐ̌
+เจือ,jeū:a
+ปอ,pᴐ̄:
+เอ,ē:
+ดี,dī:
+ตำ,tām
+ปุ,pǔ
+กึ,keǔ
+เปียะ,pīa
+เบา,bāw
+อัว,āw
+เตอะ,tə̌
+ดัว,dāw
+โบะ,bǒ
+ออ,ᴐ̄:
+ปู,pū:
+ดึ,deǔ
+ตา,tā:
+ปือ,peū:
+ตึ,teǔ
+ได,dāy
+เอะ,ě
+ดา,dā:
+บู,bū:
+เจีย,jī:a
+กำ,kām
+เตียะ,tǐa
+เจือะ,jeǔa
+เกียะ,kǐa
+โปะ,pǒ
+เปา,pāw
+เตือ,teū:a
+กา,kā:
+บุ,bǔ
+ไต,tāy
+ดำ,dām
+แอ,ǣ:
+ตี,tī:
+บอ,bᴐ̄:
+ดัวะ,dǔa
+เจอะ,jə̌
+กะ,kǎ
+เปะ,pě
+เตอ,tə̄:
+โอะ,ǒ
+ติ,tǐ
+ดะ,dǎ
+เอา,āw
+แจะ,jæ̌
+ไก,kāy`;
+
+        // CSV 數據內容 - 中子音綜合練習
+        const csvDataMidComprehensive = `แก้ว,kæ̀:w
+เก่ง,kě:ng
+บอก,bᴐ̌:k
+เดือน,deū:an
+เดียว,dī:aw
+ดึก,deǔk
+อึดอัด,eǔt ǎt
+ดูด,dǔ:t
+ตัด,tǎt
+จูน,jū:n
+ปั๊ม,pãm
+แจก,jæ̌:k
+ปูน,pū:n
+จุง,jūng
+จูง,jū:ng
+เจน,jē:n
+ปอด,pᴐ̌:t
+เดียว,dī:aw
+โดย,dō:i
+บูม,bū:m
+ติด,tǐt
+จัด,jǎt
+จิบ,jǐp
+จับ,jǎp
+จีบ,jǐ:p
+เดือย,deū:ai
+ตอน,tᴐ̄:n
+ตาย,tā:i
+บาง,bā:ng
+กัด,kǎt
+อ่าน,ǎ:n
+เกม,kē:m
+ออก,ᴐ̌:k
+กาย,kā:i
+ตั้ง,tàng
+แต่ง,tæ̌:ng
+ตอบ,tᴐ̌:p
+จอด,jᴐ̌:t
+ป้อม,pᴐ̀:m
+ป้อน,pᴐ̀:n
+กิจ,kǐt
+การ,kā:n
+กาล,kā:n
+บาล,bā:n
+บ่อย,bᴐ̌:i
+เจียว,jī:aw
+เตี๋ยว,tí:aw
+จ๊อกกิ้ง,jᴐ̃:k kìng
+อาเจียน,ā: jī:an
+เจอกัน,jə̄: kān
+ตัวเอง,tū:a ē:ng
+ตื่นเต้น,teǔ:n tè:n
+อินเดีย,īn dī:a
+จิตใจ,jǐt jāi
+ปัจจุบัน,pǎt jǔ bān
+กิน,kīn
+ตอน,tᴐ̄:n
+บ่าย,bǎ:i
+กับ,kǎp
+ป้าย,pà:i
+แปด,pæ̌:t
+ต้ม,tòm
+ต้น,tòn
+ก้น,kòn
+ก้ม,kòm
+บ้าน,bà:n
+ปีก,pǐ:k
+โจ๊ก,jõ:k
+จิ้มจุ่ม,jìm jǔm
+แกง,kǣ:ng
+จืด,jeǔ:t
+ดอก,dᴐ̌:k
+เบี้ย,bì:a
+ปิด,pǐt
+เปิด,pə̌:t
+อาย,ā:i
+ตับ,tǎp
+เดิน,də̄:n
+เกิด,kə̌:t
+เดิม,də̄:m
+เติม,tə̄:m
+เต็ม,tēm
+เติบโต,tə̌:p tō:
+ใบเตย,bāi tə̄:i
+เกย,kə̄:i
+อ้วน,ù:an
+ปวด,pǔ:at
+ก๋วยเตี๋ยว,kú:ai tí:aw
+อวย,ū:ai
+ปวย,pū:ai
+ด้วยกัน,dù:ai kān
+ดม,dōm
+กด,kǒt
+ตด,tǒt
+ตกใจ,tǒk jāi
+จน,jōn
+ปม,pōm
+จง,jōng
+เจ็ด,jět
+เป็ด,pět
+เอ็ด,ět
+เป็น,pēn
+เจ็บ,jěp
+ตุ๋น,tún`;
+
+        // CSV 數據內容 - 高子音綜合練習
+        const csvDataHighComprehensive = `สอง,sᴐ́:ng
+สาม,sá:m
+สี่,sǐ:
+ห้า,hà:
+ห้ก,hòk
+ข้าว,khà:w
+เข้าใจ,khàw jāy
+กับข้าว,kǎp khà:w
+ผัด,phǎt
+ผัก,phǎk
+ผัดผัก,phǎt phǎk
+ข้าวผัด,khà:w phǎt
+ไข่,khǎy
+ฉัน,chán
+ผม,phóm
+แฉ,chǽ:
+ฉุกเฉิน,chǔk chə́:n
+ขูด,khǔ:t
+เข็น,khén
+แขน,khǽ:n
+แข็ง,khǽng
+เข็ม,khém
+เข็ด,khět
+ขน,khón
+ขม,khóm
+สุข,sǔk
+อากาศ,ā: kǎ:t
+โอกาส,ō: kǎ:t
+สาว,sá:w
+ศึกษา,seǔk sá:
+ฐาน,thá:n
+ถุง,thúng
+ถ้า,thà:
+ถิ่น,thǐn
+ถ่าย,thǎ:y
+ถอน,thᴐ́:n
+ถอด,thᴐ̌:t
+อิจฉา,ǐt chá:
+ผ้า,phà:
+ผู้,phù:
+ผ่าน,phǎ:n
+ผิด,phǐt
+ผัว,phú:a
+ผวน,phú:an
+ถ่วง,thǔ:ang
+หวน,hú:an
+สวย,sú:ay
+สวน,sú:an
+สวด,sǔ:at
+สวม,sú:am
+สม,sóm
+สน,són
+สด,sǒt
+สบ,sǒp
+ศอก,sᴐ̌:k
+หิว,híw
+แห้ง,hæ̀:ng
+หน,hón
+โหด,hǒ:t
+เหาะ,hᴐ̌
+เถาะ,thᴐ̌
+ฝ่าฝืน,fǎ: feú:n
+ฝาแฝด,fá: fæ̌:t
+แผน,phǽ:n
+ผิง,phíng
+เผ็ด,phět
+หู,hú:
+เหี้ย,hì:a
+หี,hí:
+เถื่อน,theǔ:an
+ขวด,khǔ:at
+เขี่ย,khǐ:a
+เขื่อน,kheǔ:an
+เต้าหู้,tàw hù:
+ใส่,sǎi
+ไส้,sài
+อีสาน,ī: sá:n
+สด,sǒt
+เขียว,khí:aw
+ขาว,khá:w
+เขา,kháw
+สุกี้,sǔ kì:
+อาหาร,ā: há:n
+ของ,khᴐ́:ng
+ฝน,fón
+เสื้อ,seù:a
+ให้,hày
+ขอ,khᴐ́:
+ขอบ,khᴐ̌:p
+ถึง,theúng
+ขิง,khíng
+ข่มขืน,khǒm kheú:n
+ฝืน,feú:n
+หัด,hǎt
+ขัด,khǎt
+ขาด,khǎ:t
+ถ้วย,thù:ay
+สงสัย,sóng sáy
+สงสาร,sóng sá:n
+สะดวก,sǎ dǔ:ak
+สะอาด,sǎ ǎ:t
+ห้อง,hᴐ̀:ng
+ถาม,thá:m
+ข้าง,khà:ng
+สัตว์,sǎt
+ห้าง,hà:ng
+เสาร์,sáw
+ศุกร์,sǔk
+เสียใจ,sí:a jāy
+ข้างบน,khà:ng bōn
+ห่ม,hǒm`;
+
+        // CSV 數據內容 - 低子音綜合練習
+        const csvDataLowComprehensive = ``;
+
+        // 全域狀態
+        let syllables = []; // 儲存解析後的單字資料 {thai: string, roman: string}
+        let currentSyllable = null; // 當前顯示的單字物件
+        let currentSyllableIndex = -1; // 當前單字的索引
+
+        /**
+         * 讀取並解析 CSV 資料，並將其隨機排序。
+         * 根據勾選的 checkbox 來合併相應的 csvData。
+         */
+        function loadCsvData() {
+            // 獲取所有 checkbox 的狀態
+            const midVowelsChecked = document.getElementById('quiz-mid-vowels').checked;
+            const midComprehensiveChecked = document.getElementById('quiz-mid-comprehensive').checked;
+            const highComprehensiveChecked = document.getElementById('quiz-high-comprehensive').checked;
+            // const lowComprehensiveChecked = document.getElementById('quiz-low-comprehensive').checked;
+
+            // 檢查是否至少選擇了一個選項
+            if (!midVowelsChecked && !midComprehensiveChecked && !highComprehensiveChecked && !lowComprehensiveChecked) {
+                const progressTracker = document.getElementById('progress-tracker');
+                progressTracker.textContent = '請至少選擇一個題目類型';
+                syllables = [];
+                currentSyllableIndex = -1;
+                return;
+            }
+
+            // 合併所有勾選的 csvData
+            let combinedCsvData = '';
+            if (midVowelsChecked) {
+                combinedCsvData += csvDataMidVowels + '\n';
+            }
+            if (midComprehensiveChecked) {
+                combinedCsvData += csvDataMidComprehensive + '\n';
+            }
+            if (highComprehensiveChecked) {
+                combinedCsvData += csvDataHighComprehensive + '\n';
+            }
+            // if (lowComprehensiveChecked) {
+            //     combinedCsvData += csvDataLowComprehensive + '\n';
+            // }
+
+            // 解析合併後的 CSV 資料
+            const lines = combinedCsvData.trim().split('\n').filter(line => line.trim() !== '');
+            syllables = lines.map(line => {
+                // 使用正則表達式來處理逗號分隔，同時考慮可能的空格
+                const parts = line.split(',');
+                if (parts.length === 2) {
+                    return {
+                        thai: parts[0].trim(),
+                        roman: parts[1].trim()
+                    };
+                }
+                return null;
+            }).filter(item => item !== null);
+
+            // 隨機排序 (Fisher-Yates Shuffle)
+            for (let i = syllables.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [syllables[i], syllables[j]] = [syllables[j], syllables[i]];
+            }
+
+            console.log(`Loaded and shuffled ${syllables.length} syllables.`);
+            // 重設索引，確保 loadNextSyllable 從第一個開始 (或隨機序列的起點)
+            currentSyllableIndex = -1;
+
+            // 初始化進度顯示
+            const progressTracker = document.getElementById('progress-tracker');
+            progressTracker.textContent = `共 ${syllables.length} 個詞`; // 初始顯示總數
+        }
+
+        /**
+         * 處理題目類型 checkbox 改變的事件。
+         * 當任何 checkbox 改變時，重新載入題目。
+         */
+        function handleQuizTypeChange() {
+            loadCsvData();
+            loadNextSyllable();
+        }
+
+
+        /**
+         * 載入下一個泰文字詞。
+         */
+        function loadNextSyllable() {
+            const thaiSyllableElement = document.getElementById('thai-syllable');
+            const romanizationElement = document.getElementById('romanization');
+            const playButton = document.getElementById('play-sound-btn');
+            const messageBox = document.getElementById('message-box');
+            const progressTracker = document.getElementById('progress-tracker');
+
+
+            // 確保資料已載入
+            if (syllables.length === 0) {
+                loadCsvData();
+                if (syllables.length === 0) {
+                    thaiSyllableElement.textContent = '❌ 無法載入單字資料';
+                    console.error('Syllable data is empty after loading.');
+                    playButton.disabled = true;
+                    progressTracker.textContent = ''; // 清除進度顯示
+                    return;
+                }
+            }
+
+            // 循環顯示
+            currentSyllableIndex = (currentSyllableIndex + 1) % syllables.length;
+            currentSyllable = syllables[currentSyllableIndex];
+
+            // 1. 顯示泰文字 (CSV 第一欄)
+            thaiSyllableElement.textContent = currentSyllable.thai;
+            // 更新泰文字體顏色配合新的主題色
+            thaiSyllableElement.classList.remove('text-indigo-800');
+            thaiSyllableElement.classList.add('text-teal-700');
+
+
+            // 2. 隱藏並清空羅馬拼音
+            romanizationElement.textContent = '';
+            romanizationElement.classList.remove('opacity-100');
+            romanizationElement.classList.add('opacity-0');
+
+            // 3. 清除訊息
+            messageBox.textContent = '';
+
+            // 4. 啟用播放按鈕
+            playButton.disabled = false;
+            
+            // 5. 更新進度追蹤器
+            progressTracker.textContent = `目前第 ${currentSyllableIndex + 1} 個詞 / 共 ${syllables.length} 個`;
+
+            console.log(`Loaded Syllable: ${currentSyllable.thai} (Roman: ${currentSyllable.roman}, Index: ${currentSyllableIndex})`);
+        }
+
+        /**
+         * 播放音檔並同時顯示羅馬拼音。
+         */
+        function playSound() {
+            if (!currentSyllable || !currentSyllable.thai) {
+                console.warn('No current syllable loaded.');
+                document.getElementById('message-box').textContent = '無詞彙載入。';
+                return;
+            }
+
+            const thaiWord = currentSyllable.thai;
+            const romanizationElement = document.getElementById('romanization');
+            const playButton = document.getElementById('play-sound-btn');
+            const quizCard = document.getElementById('quiz-card');
+            const messageBox = document.getElementById('message-box');
+
+            // 1. 顯示羅馬拼音 (CSV 第二欄)
+            romanizationElement.textContent = currentSyllable.roman;
+            romanizationElement.classList.remove('opacity-0');
+            romanizationElement.classList.add('opacity-100');
+
+            // 2. 播放音檔
+            // 檔名：使用泰文字詞，並確保 URL 編碼 (路徑已更改為 ./syllable/)
+            const audioFileName = encodeURIComponent(thaiWord.replace(/\s/g, '_')); // 替換空格為底線並編碼
+            let audioUrl = `./syllable/${audioFileName}.mp3`; // 新的路徑
+
+            if (audioFileName == "%E0%B8%95%E0%B9%8B%E0%B8%B8%E0%B8%99") {
+                audioUrl  = './syllable/tun.mp3';
+            }
+
+            // 禁用按鈕以防止連點，直到音檔播放完畢
+            playButton.disabled = true;
+            messageBox.textContent = '載入音檔...';
+
+            const audio = new Audio(audioUrl);
+
+            // 成功播放
+            audio.addEventListener('play', () => {
+                messageBox.textContent = '正在播放音檔...';
+                playButton.classList.add('animate-pulse', 'bg-green-500'); // 播放時顯示效果
+            });
+
+            // 播放結束
+            audio.addEventListener('ended', () => {
+                playButton.disabled = false;
+                playButton.classList.remove('animate-pulse', 'bg-green-500');
+                messageBox.textContent = '';
+            });
+
+            // 播放開始
+            audio.play()
+                .then(() => {
+                    console.log('Audio started playing:', audioUrl);
+                })
+                .catch(error => {
+                    // 失敗處理 (例如，音檔不存在)
+                    playButton.disabled = false;
+                    playButton.classList.remove('animate-pulse', 'bg-green-500');
+                    
+                    // 視覺提示錯誤
+                    quizCard.classList.add('animate-pulse', 'bg-red-100');
+                    setTimeout(() => {
+                        quizCard.classList.remove('animate-pulse', 'bg-red-100');
+                    }, 1000);
+                    
+                    messageBox.textContent = `❌ 音檔錯誤: ${audioUrl} 找不到或無法播放`;
+                    console.error("Audio playback failed. Please check if the file exists:", audioUrl, error);
+                });
+        }
+
+
+        /**
+         * 切換泰文字的顯示字體。
+         * @param {boolean} isChecked - Switch 的狀態，true 表示切換到 Prompt 字體。
+         */
+        function toggleFont(isChecked) {
+            const bodyElement = document.getElementById('app-container');
+            const thaiSyllableElement = document.getElementById('thai-syllable');
+
+            if (isChecked) {
+                // Switch 啟用: 切換到 Prompt (Sans Serif Thai)
+                thaiSyllableElement.classList.remove('font-sarabun');
+                thaiSyllableElement.classList.add('font-prompt');
+                bodyElement.classList.remove('font-sarabun');
+                bodyElement.classList.add('font-prompt');
+            } else {
+                // Switch 關閉: 切換回 Sarabun (預設)
+                thaiSyllableElement.classList.remove('font-prompt');
+                thaiSyllableElement.classList.add('font-sarabun');
+                bodyElement.classList.remove('font-prompt');
+                bodyElement.classList.add('font-sarabun');
+            }
+            console.log("Font toggled. Prompt selected:", isChecked);
+        }
+
+        /**
+         * 處理鍵盤事件，實作快捷鍵。
+         */
+        function handleKeyDown(event) {
+            // 避免輸入框等元素響應鍵盤事件
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            const playButton = document.getElementById('play-sound-btn');
+
+            switch (event.key) {
+                case 'ArrowRight':
+                    event.preventDefault(); // 防止頁面滾動
+                    loadNextSyllable();
+                    break;
+                case ' ': // 監聽空白鍵
+                    event.preventDefault(); // 防止頁面滾動
+                    // 檢查播放按鈕是否啟用，避免重複播放或在無詞彙時播放
+                    if (!playButton.disabled) {
+                        playSound();
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // 頁面載入完成後，初始化並載入第一個詞彙
+        window.onload = function() {
+            loadCsvData(); // 先載入 CSV 資料
+            loadNextSyllable(); // 然後載入第一個詞彙
+            // 綁定鍵盤事件監聽器
+            window.addEventListener('keydown', handleKeyDown);
+        };
+
+    </script>
+</body>
+</html>
+
