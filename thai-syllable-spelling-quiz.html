@@ -91,10 +91,10 @@
                     <input type="checkbox" id="quiz-high-comprehensive" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500" onchange="handleQuizTypeChange()">
                     <span class="text-sm font-medium text-gray-700">高子音綜合練習</span>
                 </label>
-                <!-- <label class="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                <label class="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
                     <input type="checkbox" id="quiz-low-comprehensive" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500" onchange="handleQuizTypeChange()">
                     <span class="text-sm font-medium text-gray-700">低子音綜合練習</span>
-                </label> -->
+                </label>
             </div>
         </div>
 
@@ -306,7 +306,7 @@
 เบา,bāw
 อัว,āw
 เตอะ,tə̌
-ดัว,dāw
+ดัว,dū:a
 โบะ,bǒ
 ออ,ᴐ̄:
 ปู,pū:
@@ -565,7 +565,139 @@
 ห่ม,hǒm`;
 
         // CSV 數據內容 - 低子音綜合練習
-        const csvDataLowComprehensive = ``;
+        const csvDataLowComprehensive = `เคาะ,khᴐ̃
+คด,khõt
+คัด,khãt
+คั้น,khãn
+คน,khōn
+โคน,khō:n
+โชค,chò:k
+งง,ngōng
+ง่าย,ngà:y
+งบ,ngõp
+งู,ngū:
+งอน,ngᴐ̄:n
+ช่าง,chà:ng
+ช้าง,chã:ng
+ชน,chōn
+ชอบ,chᴐ̀:p
+ชุบ,chũp
+ชีพ,chì:p
+แค้น,khæ̃:n
+ชาย,chā:y
+ใช่,chài
+ใช้,chãi
+ช้ำ,chãm
+เซ็น,sēn
+ช่วง,chù:ang
+งวด,ngù:at
+งีบ,ngì:p
+ซวย,sū:ay
+ช่วย,chù:ay
+ชวน,chū:an
+ชัวร์,chū:a
+ชง,chōng
+ซีก,sì:k
+ซุป,sũp
+แซว,sǣ:w
+แซ่,sæ̀:
+เณร,nē:n
+วิญญาณ,wīn yā:n
+คุณ,khūn
+สัญญา,sán yā:
+กุญแจ,kūn jǣ:
+ณัฐ,nãt
+ทอด,thᴐ̀:t
+ทุก,thũk
+ทาส,thà:t
+ทาน,thā:n
+ท่าน,thàn
+ท้าย,thã:y
+ท้า,thã:
+ที่,thì:
+น้ำ,nãm
+นิด,nĩt
+ทิศ,thĩt
+พิษ,phĩt
+ทิชชู่,thĩt chù:
+แฟน,fǣ:n
+แฟร์,fǣ:
+เฟื้อย,feũ:ay
+ฟุ่มเฟือย,fùm feū:ay
+ฟาด,fà:t
+พัด,phãt
+พูด,phù:t
+พัน,phān
+พ่น,phòn
+ลาภ,là:p
+ภาพ,phà:p
+พวง,phū:ang
+พวก,phù:ak
+ยาย,yā:y
+ยุ่ง,yùng
+ยุง,yūng
+ยัง,yāng
+ยิ้ม,yĩm
+เธอ,thə̄:
+ธีม,thī:m
+ลำธาร,lām thā:n
+ธิดา,thĩ dā:
+ทูต,thù:t
+เท็จ,thẽt
+นัก,nãk
+เทศ,thè:t
+แทง,thǣ:ng
+ทวด,thù:at
+ท่วม,thù:am
+รวด,rù:at
+เร็ว,rēw
+แรด,ræ̀:t
+ร้าน,rã:n
+ยั่วยวน,yù:a yū:an
+ยาวนาน,yā:w nā:n
+แว่น,wæ̀:n
+วาด,wà:t
+วิชา,wĩ chā:
+ฟิน,fīn
+ฟุต,fũt
+วง,wōng
+งงงวย,ngōng ngū:ay
+วี่แวว,wì: wǣ:w
+ว่องไว,wᴐ̀:ng wāy
+เว็บ,wẽp
+มอไซค์,mᴐ̄: sāy
+มะม่วง,mã mù:ang
+มะเขือ,mã kheú:a
+มัด,mãt
+นัด,nãt
+วัด,wãt
+ยับ,yãp
+เมิน,mə̄:n
+เนิ่น,nə̀:n
+เพิ่ง,phə̀:ng
+เพิ่ม,phə̀:m
+คอนเสิร์ต,khᴐ̄:n sə̌:t
+คอนโด,khᴐ̄:n dō:
+เนาะ,nᴐ̃
+เนอะ,nə̃
+เพาะ,phᴐ̃
+เราะ,rᴐ̃
+วิ่ง,wìng
+ทูน่า,thū: nà:
+ทึ่ง,theùng
+ทึบ,theũp
+ทึกทัก,theũk thãk
+ทืบ,theù:p
+พืช,pheù:t
+คืบ,kheù:p
+คาบ,khà:p
+คุ้นเคย,khũn khə̄:y
+กะเทย,kǎ thə̄:y
+เนย,nə̄:y
+นุช,nũt
+บุคคล,bǔk khōn
+มงคล,mōng khōn
+เลอะเทอะ,lə̃ thə̃`;
 
         // 全域狀態
         let syllables = []; // 儲存解析後的單字資料 {thai: string, roman: string}
@@ -581,7 +713,7 @@
             const midVowelsChecked = document.getElementById('quiz-mid-vowels').checked;
             const midComprehensiveChecked = document.getElementById('quiz-mid-comprehensive').checked;
             const highComprehensiveChecked = document.getElementById('quiz-high-comprehensive').checked;
-            // const lowComprehensiveChecked = document.getElementById('quiz-low-comprehensive').checked;
+            const lowComprehensiveChecked = document.getElementById('quiz-low-comprehensive').checked;
 
             // 檢查是否至少選擇了一個選項
             if (!midVowelsChecked && !midComprehensiveChecked && !highComprehensiveChecked && !lowComprehensiveChecked) {
@@ -603,9 +735,9 @@
             if (highComprehensiveChecked) {
                 combinedCsvData += csvDataHighComprehensive + '\n';
             }
-            // if (lowComprehensiveChecked) {
-            //     combinedCsvData += csvDataLowComprehensive + '\n';
-            // }
+            if (lowComprehensiveChecked) {
+                combinedCsvData += csvDataLowComprehensive + '\n';
+            }
 
             // 解析合併後的 CSV 資料
             const lines = combinedCsvData.trim().split('\n').filter(line => line.trim() !== '');
