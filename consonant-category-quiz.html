@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰文子音分類測驗</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                        thai: ['Noto Sans Thai', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#0d9488', // Indigo-600
+                        'secondary': '#6b7280', // Orange-600
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 確保泰文字體能正確顯示 */
+        .font-thai {
+            font-family: 'Noto Sans Thai', 'sans-serif';
+            line-height: 1;
+        }
+        .quiz-container {
+            max-width: 768px;
+        }
+        .option-button {
+            transition: all 0.2s;
+            height: 5rem; /* 確保按鈕高度一致 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .correct-answer {
+            background-color: #10b981; /* Emerald-500 */
+            color: white;
+            border-color: #10b981;
+        }
+        .incorrect-answer {
+            background-color: #ef4444; /* Red-500 */
+            color: white;
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div id="quiz-container" class="quiz-container w-full bg-white shadow-xl rounded-2xl p-6 md:p-10">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-6 text-center">
+            泰文子音分類測驗
+        </h1>
+
+        <!-- 測驗內容區 -->
+        <div id="quiz-content" class="space-y-6">
+            <!-- 題目區 -->
+            <div id="question-card" class="bg-primary bg-opacity-10 p-4 md:p-6 rounded-xl shadow-lg">
+                <p id="question-text" class="text-xl font-semibold text-gray-800 text-center">
+                    載入中...
+                </p>
+                <!-- 移除了原有的 consonants-display，子音將直接在按鈕上顯示 -->
+            </div>
+
+            <!-- 選項按鈕區 -->
+            <div id="options-container" class="grid grid-cols-2 gap-4">
+                <!-- 選項按鈕將在此處生成 -->
+            </div>
+
+            <!-- 結果與按鈕區 -->
+            <div id="result-area" class="mt-8 pt-4 border-t border-gray-200 space-y-4">
+                <div id="message-box" class="min-h-10 text-center text-lg font-bold">
+                    <!-- 提示或結果訊息 -->
+                    <!-- 移除了初始的 "請選擇分類不同的子音：" 提示 -->
+                </div>
+                
+                <div id="explanation-box" class="hidden bg-yellow-50 border-l-4 border-secondary p-3 rounded">
+                    <p class="font-semibold text-secondary mb-1">💡 詳解：</p>
+                    <!-- 放大詳解文字 -->
+                    <p id="explanation-text" class="text-gray-700 text-base"></p>
+                </div>
+
+                <button id="next-button" onclick="loadNextQuestion()" class="w-full py-3 bg-secondary text-white font-bold rounded-lg shadow-md hover:bg-orange-700 transition duration-150 ease-in-out">
+                    下一題
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 泰文子音及其類別 (複製自 Python 程式)
+        const CONSONANTS = {
+            "中子音 (Middle)": ['ก', 'จ', 'ฎ', 'ฏ', 'ด', 'ต', 'บ', 'ป', 'อ'],
+            "高子音 (High)": ['ข', 'ฉ', 'ฐ', 'ถ', 'ผ', 'ฝ', 'ศ', 'ษ', 'ส', 'ห'],
+            "低子音 (Low)": ['ค', 'ฆ', 'ง', 'ช', 'ซ', 'ฌ', 'ญ', 'ฑ', 'ฒ', 'ณ', 'ท', 'ธ', 'น', 'พ', 'ฟ', 'ภ', 'ม', 'ย', 'ร', 'ล', 'ว', 'ฬ', 'ฮ']
+        };
+
+        const optionLetters = ['A', 'B', 'C', 'D'];
+        let currentQuiz = null;
+        let isAnswered = false;
+        
+        // 移除 questionCounter，因為不再顯示題號
+        // let questionCounter = 1;
+
+        /**
+         * 隨機選擇數組中的一個元素
+         * @param {Array} arr 
+         * @returns {*}
+         */
+        function randomChoice(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        /**
+         * 從數組中隨機選擇 n 個不重複的元素
+         * @param {Array} arr 
+         * @param {number} n 
+         * @returns {Array}
+         */
+        function randomSample(arr, n) {
+            if (n > arr.length) return [...arr]; // 避免錯誤
+            let result = new Array(n),
+                len = arr.length,
+                taken = new Array(len);
+            while (n--) {
+                const x = Math.floor(Math.random() * len);
+                result[n] = arr[x in taken ? taken[x] : x];
+                taken[x] = --len in taken ? taken[len] : len;
+            }
+            return result;
+        }
+
+        /**
+         * 重新實現 Python 的題目生成邏輯
+         * @returns {Object}
+         */
+        function generateThaiConsonantQuiz() {
+            const allClasses = Object.keys(CONSONANTS);
+
+            // 1. 選擇誘答項類別和正確答案類別
+            let distractorClass = randomChoice(allClasses);
+            let answerClassOptions = allClasses.filter(c => c !== distractorClass);
+            let answerClass = randomChoice(answerClassOptions);
+            
+            // 處理極少數情況下的重試
+            if (!answerClass) return generateThaiConsonantQuiz();
+
+            // 2. 抽取 3 個誘答項
+            const distractorOptions = randomSample(CONSONANTS[distractorClass], 3);
+
+            // 3. 抽取 1 個正確答案
+            const correctOption = randomChoice(CONSONANTS[answerClass]);
+
+            // 4. 組合所有選項並打亂
+            const allOptions = distractorOptions.concat([correctOption]);
+            allOptions.sort(() => Math.random() - 0.5); // 簡單打亂
+
+            // 5. 格式化輸出
+            // 移除題號
+            const questionText = `請問下列哪個選項的泰文子音類別和其他選項不同？`;
+
+            const correctCategoryName = answerClass.split(' ')[0];
+            const distractorCategoryName = distractorClass.split(' ')[0];
+            
+            let correctOptionData = null;
+
+            const quizOptions = allOptions.map((consonant, i) => {
+                const isCorrect = (consonant === correctOption);
+                
+                let rationale;
+                if (isCorrect) {
+                    rationale = `${consonant} 屬於${correctCategoryName}，而其他三個選項皆屬於${distractorCategoryName}。`;
+                } else {
+                    rationale = `${consonant} 屬於${distractorCategoryName}，和正確答案（${correctCategoryName}）不同。`;
+                }
+
+                const optionData = {
+                    consonant: consonant,
+                    letter: optionLetters[i],
+                    is_correct: isCorrect,
+                    rationale: rationale,
+                };
+                
+                if (isCorrect) {
+                    correctOptionData = optionData;
+                }
+                
+                return optionData;
+            });
+
+            return {
+                question: questionText,
+                options: quizOptions,
+                correct_answer: correctOptionData,
+                explanation: correctOptionData.rationale,
+            };
+        }
+
+        /**
+         * 檢查使用者選擇的答案
+         * @param {HTMLElement} button 
+         * @param {Object} optionData 
+         */
+        function checkAnswer(button, optionData) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const messageBox = document.getElementById('message-box');
+            const explanationBox = document.getElementById('explanation-box');
+            const explanationText = document.getElementById('explanation-text');
+            const optionsContainer = document.getElementById('options-container');
+
+            // 顯示詳解
+            explanationText.textContent = currentQuiz.explanation;
+            explanationBox.classList.remove('hidden');
+
+            if (optionData.is_correct) {
+                messageBox.innerHTML = '<span class="text-green-600">✅ 正確！</span>';
+                button.classList.add('correct-answer');
+            } else {
+                messageBox.innerHTML = '<span class="text-red-600">❌ 錯誤，請看詳解。</span>';
+                button.classList.add('incorrect-answer');
+                
+                // 找出正確答案並標註
+                const correctButton = Array.from(optionsContainer.children).find(btn => 
+                    btn.dataset.isCorrect === 'true'
+                );
+                if (correctButton) {
+                    correctButton.classList.add('correct-answer');
+                }
+            }
+            
+            // 禁用所有按鈕
+            Array.from(optionsContainer.children).forEach(btn => btn.disabled = true);
+        }
+        
+        /**
+         * 載入並渲染下一道題目
+         */
+        function loadNextQuestion() {
+            // 移除 questionCounter 的參數傳遞
+            currentQuiz = generateThaiConsonantQuiz();
+            isAnswered = false;
+
+            const questionTextEl = document.getElementById('question-text');
+            const optionsContainerEl = document.getElementById('options-container');
+            const messageBoxEl = document.getElementById('message-box');
+            const explanationBoxEl = document.getElementById('explanation-box');
+
+            // 1. 重置狀態和訊息
+            messageBoxEl.textContent = '請選擇答案'; // 簡化/替換了原有的提示
+            explanationBoxEl.classList.add('hidden');
+            optionsContainerEl.innerHTML = '';
+
+            // 2. 渲染問題
+            questionTextEl.textContent = currentQuiz.question;
+            
+            // 3. 渲染答案按鈕 (直接顯示子音)
+            currentQuiz.options.forEach(opt => {
+                const button = document.createElement('button');
+                
+                // 直接將子音作為按鈕內容，並應用泰文字體樣式
+                button.textContent = opt.consonant; 
+                
+                button.className = 'option-button font-thai text-5xl py-3 px-4 bg-gray-50 text-gray-800 border-2 border-gray-300 font-bold rounded-lg shadow-sm hover:bg-primary hover:text-white hover:border-primary focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 transition duration-150 ease-in-out';
+                button.dataset.isCorrect = opt.is_correct; // 儲存正確性標籤
+                button.onclick = function() {
+                    checkAnswer(this, opt);
+                };
+                optionsContainerEl.appendChild(button);
+            });
+        }
+
+        // 頁面載入完成後自動載入第一道題目
+        window.onload = function() {
+            loadNextQuestion();
+        };
+    </script>
+</body>
+</html>
